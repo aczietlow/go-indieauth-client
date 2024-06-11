@@ -1,0 +1,55 @@
+{{ block "index" . }}
+<html>
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://unpkg.com/htmx.org@1.9.12" ></script>
+        <link href="css/styles.css" rel="stylesheet">
+    </head>
+    <body>
+        {{ template "form" .Form }}
+        <hr />
+        {{ template "progress" .Progress }}
+
+        <script>
+            document.addEventListener("DOMContentLoaded", (event) => {
+                document.body.addEventListener('htmx:beforeSwap', function(event) {
+                    if (event.detail.xhr.status === 422) {
+                        event.detail.shouldSwap = true;
+                        event.detail.isError = false;
+                    }
+                });
+            })
+        </script>
+    </body>
+</html>
+{{ end }}
+
+{{ block "form" . }}
+
+<form hx-post="/auth" hx-swap="outerHTML">
+    url: <input
+        {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
+        type="text" name="url" placeholder="domain.com">
+
+    <button type="submit">Sign In</button>
+
+    {{ if .Errors.url }}
+    <div style="color:red"> {{ .Errors.url }} </div>
+    {{ end }}
+
+</form>
+{{ end }}
+
+
+{{ block "progress" . }}
+
+<pre>
+
+    <div id="progress" hx-swap-oob="afterbefore">
+    {{ print .Step }}
+     </div>
+</pre>
+{{ end }}
+

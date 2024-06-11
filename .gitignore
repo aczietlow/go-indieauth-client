@@ -1,0 +1,7 @@
+.idea/
+.DS_Store
+
+/tmp/
+/dist/
+/node_modules/
+/website/views/**/*.go
