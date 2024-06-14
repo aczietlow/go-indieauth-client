@@ -1,5 +1,5 @@
 - [ ] Add support to indieAuthClient to look for auth metadata endpoint
 - [ ] Add functionality to indieAuthClient to follow auth metadata URL, parse json, and return the auth and token endpoints
-- [ ] Go back and complete url canonicalization
+- [x] Go back and complete url canonicalization
 - [ ] Move on to creating the client authorization request
   - The client builds the authorization request including its client identifier, requested scope, local state, and a redirect URI. Then redirects the browser to the authorization endpoint

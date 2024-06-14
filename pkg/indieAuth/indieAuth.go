@@ -4,7 +4,6 @@ import (
 	"errors"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"io"
 	"net/http"
 )
 
@@ -24,13 +23,6 @@ type Endpoint struct {
 
 type Token struct {
 	AccessToken string `json:"access_token"`
-}
-
-type Server struct {
-	Server                string
-	AuthorizationEndpoint string
-	TokenEndpoint         string
-	Identity              string
 }
 
 func New(ProfileURL string) (Config, error) {
@@ -53,14 +45,6 @@ func New(ProfileURL string) (Config, error) {
 		Identifier:   id,
 		RedirectURL:  "",
 	}, nil
-}
-
-func (s *Server) request(uri string) []byte {
-	resp, _ := http.Get(uri)
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-
-	return body
 }
 
 // @TODO add support for newer metadata endpoints as well.
