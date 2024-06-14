@@ -55,12 +55,6 @@ func New(ProfileURL string) (Config, error) {
 	}, nil
 }
 
-func NewServer(url string) Server {
-	return Server{
-		Server: url,
-	}
-}
-
 func (s *Server) request(uri string) []byte {
 	resp, _ := http.Get(uri)
 	defer resp.Body.Close()

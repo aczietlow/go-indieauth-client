@@ -23,7 +23,7 @@ func newUserIdentifier(profileURL string) (Identifier, error) {
 		return Identifier{}, err
 	}
 
-	return Identifier{ProfileURL: profileURL}, nil
+	return Identifier{ProfileURL: IdURL.String()}, nil
 }
 
 func validateProfileURL(u *url.URL) error {
@@ -33,12 +33,9 @@ func validateProfileURL(u *url.URL) error {
 	}
 
 	if !validSchemes[u.Scheme] {
-		if u.Hostname() != "localhost" {
-			return errors.New("URL MUST use 'http' or 'https' as a valid scheme")
-		}
+		return errors.New("URL MUST use 'http' or 'https' as a valid scheme")
 	}
 
-	// TODO: Fix this. It fires on "zietlow.io" Should be fixed by the canonization
 	if u.Hostname() == "" {
 		return errors.New("no Hostname provided")
 	}
@@ -65,8 +62,10 @@ func validateProfileURL(u *url.URL) error {
 }
 
 func canonicalizeURL(u *url.URL) {
-	if u.Scheme == "" && u.Host != "localhost" {
+	if u.Scheme == "" {
 		u.Scheme = "https"
+		u.Host = u.Path
+		u.Path = ""
 	}
 
 	if u.Path == "" {
