@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"go-indieauth-client/pkg/indieAuthClient"
+	"go-indieauth-client/pkg/indieAuth"
 	"html/template"
 	"io"
-	"net/url"
 )
 
 type Templates struct {
@@ -72,18 +71,6 @@ func newData() Data {
 	}
 }
 
-func (u User) IsUrl(id string) bool {
-	website, err := url.Parse(id)
-	if err != nil {
-		return false
-	}
-	if website.Scheme == "" {
-		//if website.Scheme == "" || website.Host == "" {
-		return false
-	}
-	return true
-}
-
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -100,26 +87,17 @@ func main() {
 		website := c.FormValue("url")
 		formData := newFormData()
 		formData.Values["url"] = website
-		user := newUser(website)
-
-		if !user.IsUrl(website) {
-			formData.Errors["url"] = "Not a valid domain."
-			return c.Render(422, "form", formData)
-		}
 
 		c.Render(200, "form", formData)
 
-		AuthServerURL := indieAuthClient.DiscoveryAuthServer(website)
+		indieAuthClient, err := indieAuth.New(website)
 
-		if AuthServerURL != "" {
-			formData.Errors["url"] = fmt.Sprintf("Couldn't find <link rel=authorization_endpoint> at %s", website)
+		if err != nil {
+			formData.Errors["url"] = fmt.Sprintf("Error when trying to parse the url: %v", err)
 			return c.Render(422, "form", formData)
 		}
 
-		AuthServer := indieAuthClient.NewServer(AuthServerURL)
-		AuthServer.Identity = website
-
-		data.Progress.Step = fmt.Sprintf("Step 2\nToken Endpoint:%v\nAuthorization Endpoint:%v", AuthServer.TokenEndpoint, AuthServer.AuthorizationEndpoint)
+		data.Progress.Step = fmt.Sprintf("Step 2\nToken Endpoint:%v\nAuthorization Endpoint:%v", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
 		return c.Render(200, "progress", data.Progress)
 	})
 
