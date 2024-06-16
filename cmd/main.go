@@ -98,6 +98,8 @@ func main() {
 		}
 
 		data.Progress.Step = fmt.Sprintf("Step 2\nToken Endpoint:%v\nAuthorization Endpoint:%v", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
+
+		indieAuthClient.HandShake()
 		return c.Render(200, "progress", data.Progress)
 	})
 

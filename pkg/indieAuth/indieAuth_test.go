@@ -19,11 +19,11 @@ func TestDiscoveryAuthServer(t *testing.T) {
 	}
 
 	tests := []TestUrl{
-		//{
-		//	sourceUrl:        ts.URL,
-		//	authEndpointUrl:  "http://localhost/auth",
-		//	tokenEndpointUrl: "http://localhost/token",
-		//},
+		{
+			sourceUrl:        ts.URL,
+			authEndpointUrl:  "http://localhost/auth",
+			tokenEndpointUrl: "http://localhost/token",
+		},
 		{
 			sourceUrl:        "https://zietlow.io/",
 			authEndpointUrl:  "https://indieauth.com/auth",
@@ -42,5 +42,19 @@ func TestDiscoveryAuthServer(t *testing.T) {
 		if endpoint.TokenURL != Url.tokenEndpointUrl {
 			t.Errorf("Parsed %v Expected '%v', got '%s'", Url.sourceUrl, Url.tokenEndpointUrl, endpoint.TokenURL)
 		}
+	}
+}
+
+func TestGenerateState(t *testing.T) {
+	n := 10
+	stateStr, err := generateState(n)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	// Check for expected return encoded length due to base64 encoded.
+	expectedLength := ((n + 2) / 3) * 4
+	if len(stateStr) != expectedLength {
+		t.Errorf("Expected length of '%v', got '%v'", expectedLength, len(stateStr))
 	}
 }

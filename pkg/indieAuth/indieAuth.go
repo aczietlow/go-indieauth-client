@@ -1,14 +1,19 @@
 package indieAuth
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 	"net/http"
 )
 
 type Config struct {
-	ClientID     string
+	ClientID string
+	// @TODO What is the client secret again?
 	ClientSecret string
 	Endpoint     Endpoint
 	Identifier   Identifier
@@ -39,11 +44,11 @@ func New(ProfileURL string) (Config, error) {
 	}
 
 	return Config{
-		ClientID:     "",
+		ClientID:     "indieAuth",
 		ClientSecret: "",
 		Endpoint:     endpoint,
 		Identifier:   id,
-		RedirectURL:  "",
+		RedirectURL:  "http://localhost:9002/redirect",
 	}, nil
 }
 
@@ -100,4 +105,60 @@ func discoveryAuthServer(url string) (Endpoint, error) {
 		tokenType = responseTokens.Next()
 	}
 	return Endpoint{}, errors.New("unable to find link header for `indieauth-metadata` or link headers for `rel=authorization_endpoint` and `rel=token_endpoint`")
+}
+
+func (c *Config) HandShake() {
+	state, err := generateState(10)
+	if err != nil {
+		// @TODO do something
+		fmt.Println(err.Error())
+	}
+
+	// code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+	verifier, _ := generateCodeVerifier()
+	// @TODO Add support for additional code challenge methods in the future.
+	codeChallenge := s256CodeChallenge(verifier)
+
+	req := struct {
+		response_type         string
+		client_id             string
+		redirect_uri          string
+		state                 string
+		code_challenge        string
+		code_challenge_method string
+		scope                 string
+		me                    string
+	}{
+		response_type:         "code",
+		client_id:             c.ClientID,
+		redirect_uri:          c.RedirectURL,
+		state:                 state,
+		code_challenge:        codeChallenge,
+		code_challenge_method: "S256",
+		scope:                 "profile email",
+		me:                    c.Identifier.ProfileURL,
+	}
+	fmt.Printf("%v", req)
+}
+
+func generateState(n int) (string, error) {
+	data := make([]byte, n)
+	if _, err := rand.Read(data); err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(data), nil
+}
+
+func generateCodeVerifier() (string, error) {
+	data := make([]byte, 32)
+	if _, err := rand.Read(data); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(data), nil
+}
+
+func s256CodeChallenge(s string) string {
+	hash := sha256.New()
+	hash.Write([]byte(s))
+	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
