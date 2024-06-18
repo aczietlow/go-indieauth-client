@@ -7,6 +7,8 @@ import (
 	"go-indieauth-client/pkg/indieAuth"
 	"html/template"
 	"io"
+	"log"
+	"net/http"
 )
 
 type Templates struct {
@@ -71,10 +73,18 @@ func newData() Data {
 	}
 }
 
+type RedirectResponse struct {
+	URL string `json:"url"`
+}
+
 func main() {
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Static("/css", "web/css")
+
+	// Inline debugging.
+	//log.Println()
 
 	data := newData()
 	e.Renderer = newTemplate()
@@ -88,7 +98,8 @@ func main() {
 		formData := newFormData()
 		formData.Values["url"] = website
 
-		c.Render(200, "form", formData)
+		// TODO: fix this later. We can't render form and json in the same callback.
+		//c.Render(200, "form", formData)
 
 		indieAuthClient, err := indieAuth.New(website)
 
@@ -99,7 +110,16 @@ func main() {
 
 		data.Progress.Step = fmt.Sprintf("Step 2\nToken Endpoint:%v\nAuthorization Endpoint:%v", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
 
-		indieAuthClient.HandShake()
+		redirectURL := indieAuthClient.GetAuthorizationRequestURL()
+		//http.Redirect(w, r, redirectURL, 301)
+		log.Println("should redirect here.")
+
+		response := RedirectResponse{
+			URL: redirectURL,
+		}
+		// @TODO: Find a way to do this that doesn't require JSON.
+		return c.JSON(http.StatusOK, response)
+
 		return c.Render(200, "progress", data.Progress)
 	})
 

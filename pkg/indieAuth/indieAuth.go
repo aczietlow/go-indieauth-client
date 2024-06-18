@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 	"net/http"
+	"net/url"
 )
 
 type Config struct {
@@ -107,7 +108,21 @@ func discoveryAuthServer(url string) (Endpoint, error) {
 	return Endpoint{}, errors.New("unable to find link header for `indieauth-metadata` or link headers for `rel=authorization_endpoint` and `rel=token_endpoint`")
 }
 
-func (c *Config) HandShake() {
+func (c *Config) GetAuthorizationRequestURL() string {
+	params := c.getHandshakeParams()
+	u, err := url.Parse(c.Endpoint.AuthURL)
+
+	if err != nil {
+		// @TODO do something
+		fmt.Println(err.Error())
+	}
+	u.RawQuery = params.Encode()
+
+	return u.String()
+
+}
+
+func (c *Config) getHandshakeParams() url.Values {
 	state, err := generateState(10)
 	if err != nil {
 		// @TODO do something
@@ -119,26 +134,19 @@ func (c *Config) HandShake() {
 	// @TODO Add support for additional code challenge methods in the future.
 	codeChallenge := s256CodeChallenge(verifier)
 
-	req := struct {
-		response_type         string
-		client_id             string
-		redirect_uri          string
-		state                 string
-		code_challenge        string
-		code_challenge_method string
-		scope                 string
-		me                    string
-	}{
-		response_type:         "code",
-		client_id:             c.ClientID,
-		redirect_uri:          c.RedirectURL,
-		state:                 state,
-		code_challenge:        codeChallenge,
-		code_challenge_method: "S256",
-		scope:                 "profile email",
-		me:                    c.Identifier.ProfileURL,
+	//request := map[string][]string{
+	request := url.Values{
+		"response_type":         []string{"code"},
+		"client_id":             []string{c.ClientID},
+		"redirect_uri":          []string{c.RedirectURL},
+		"state":                 []string{state},
+		"code_challenge":        []string{codeChallenge},
+		"code_challenge_method": []string{"S256"},
+		"scope":                 []string{"profile email"},
+		"me":                    []string{c.Identifier.ProfileURL},
 	}
-	fmt.Printf("%v", req)
+
+	return request
 }
 
 func generateState(n int) (string, error) {
