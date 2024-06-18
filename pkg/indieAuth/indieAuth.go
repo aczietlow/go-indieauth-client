@@ -44,12 +44,18 @@ func New(ProfileURL string) (Config, error) {
 		return Config{}, err
 	}
 
+	runTimeConf, err := loadConfig("./config.yaml")
+
+	if err != nil {
+		return Config{}, nil
+	}
+
 	return Config{
-		ClientID:     "indieAuth",
+		ClientID:     runTimeConf.URL,
 		ClientSecret: "",
 		Endpoint:     endpoint,
 		Identifier:   id,
-		RedirectURL:  "http://localhost:9002/redirect",
+		RedirectURL:  runTimeConf.RedirectURL,
 	}, nil
 }
 
