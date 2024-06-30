@@ -47,7 +47,7 @@ func New(ProfileURL string) (Config, error) {
 	runTimeConf, err := loadConfig("./config.yaml")
 
 	if err != nil {
-		return Config{}, nil
+		return Config{}, err
 	}
 
 	return Config{
@@ -61,7 +61,12 @@ func New(ProfileURL string) (Config, error) {
 
 // @TODO add support for newer metadata endpoints as well.
 func discoveryAuthServer(url string) (Endpoint, error) {
-	resp, _ := http.Get(url)
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return Endpoint{}, err
+	}
+
 	defer resp.Body.Close()
 	responseTokens := html.NewTokenizer(resp.Body)
 	var endpointURL string
@@ -115,7 +120,7 @@ func discoveryAuthServer(url string) (Endpoint, error) {
 }
 
 func (c *Config) GetAuthorizationRequestURL() string {
-	params := c.getHandshakeParams()
+	params := getHandshakeParams(*c)
 	u, err := url.Parse(c.Endpoint.AuthURL)
 
 	if err != nil {
@@ -128,7 +133,7 @@ func (c *Config) GetAuthorizationRequestURL() string {
 
 }
 
-func (c *Config) getHandshakeParams() url.Values {
+func getHandshakeParams(c Config) url.Values {
 	state, err := generateState(10)
 	if err != nil {
 		// @TODO do something

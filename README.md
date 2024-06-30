@@ -21,3 +21,10 @@ Then visit `http://localhost:9002`
 - /tmp - build assets used during compiling and serving the website
 - /website - the project's website used as a PoC implementation
 
+## Working with remote IndieAuth Servers
+
+The IndieAuth Server needs to be able to reach both the redirect_uri and client_id URLs. To accomplish this I use ngrok. The following assumes that both ngrok is installed locally and that the local dev address of the indieAuth client website is http://localhost:9002
+
+`ngrok http http://localhost:9002`
+
+Then add the ngrok URL to the config.yaml file.

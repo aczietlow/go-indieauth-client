@@ -22,18 +22,18 @@
                 });
             })
 
-            document.addEventListener('htmx:afterOnLoad', (event) => {
-                console.log("event bound")
-                console.log(event.detail.requestConfig.path)
-                if (event.detail.requestConfig.path === '/auth' && event.detail.xhr.status === 200) {
-                    console.log(event.detail.xhr.responseText)
-                    const response = JSON.parse(event.detail.xhr.responseText);
-                    console.log(response.url)
-                    if (response.url) {
-                        window.location.href = response.url;
-                    }
-                }
-            })
+            // document.addEventListener('htmx:afterOnLoad', (event) => {
+            //     console.log("event bound")
+            //     console.log(event.detail.requestConfig.path)
+            //     if (event.detail.requestConfig.path === '/auth' && event.detail.xhr.status === 200) {
+            //         console.log(event.detail.xhr.responseText)
+            //         const response = JSON.parse(event.detail.xhr.responseText);
+            //         console.log(response.url)
+            //         if (response.url) {
+            //             window.location.href = response.url;
+            //         }
+            //     }
+            // })
         </script>
     </body>
 </html>

@@ -8,7 +8,7 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"net/http"
+	"os"
 )
 
 type Templates struct {
@@ -56,7 +56,7 @@ type Progress struct {
 
 func newProgress() Progress {
 	return Progress{
-		Step: "step 1",
+		Step: "step 1: Prompt User for ID\n",
 	}
 }
 
@@ -98,27 +98,33 @@ func main() {
 		formData := newFormData()
 		formData.Values["url"] = website
 
-		// TODO: fix this later. We can't render form and json in the same callback.
-		//c.Render(200, "form", formData)
-
 		indieAuthClient, err := indieAuth.New(website)
+		log.Println(os.Getwd())
 
 		if err != nil {
 			formData.Errors["url"] = fmt.Sprintf("Error when trying to parse the url: %v", err)
 			return c.Render(422, "form", formData)
 		}
 
-		data.Progress.Step = fmt.Sprintf("Step 2\nToken Endpoint:%v\nAuthorization Endpoint:%v", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
+		// TODO: fix this later. We can't render form and json in the same callback.
+		c.Render(200, "form", formData)
+
+		data.Progress.Step += fmt.Sprintf("Step 2:\nToken Endpoint:%v\nAuthorization Endpoint:%v", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
 
 		redirectURL := indieAuthClient.GetAuthorizationRequestURL()
+
+		log.Printf("client_id:%v\n url:%v\n", indieAuthClient.ClientID, indieAuthClient.RedirectURL)
+		log.Printf("id:%v\n", indieAuthClient.Identifier)
 		//http.Redirect(w, r, redirectURL, 301)
 		log.Println("should redirect here.")
 
-		response := RedirectResponse{
-			URL: redirectURL,
-		}
+		//response := RedirectResponse{
+		//	URL: redirectURL,
+		//}
+
+		log.Println(redirectURL)
 		// @TODO: Find a way to do this that doesn't require JSON.
-		return c.JSON(http.StatusOK, response)
+		//return c.JSON(http.StatusOK, response)
 
 		return c.Render(200, "progress", data.Progress)
 	})

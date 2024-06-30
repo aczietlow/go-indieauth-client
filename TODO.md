@@ -22,3 +22,4 @@ Post MVP
 - [ ] Add functionality to indieAuthClient to follow auth metadata URL, parse json, and return the auth and token endpoints
 - [ ] Allow for composable [scopes](https://indieauth.spec.indieweb.org/#profile-information-li-1). No need to force profile and email all the time.
 - [ ] Add additional code-challenge methods other than SHA256
+- [ ] refactor indieAuth config file. Currently, am duplicating a thing
