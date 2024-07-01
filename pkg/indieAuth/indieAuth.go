@@ -19,6 +19,8 @@ type Config struct {
 	Endpoint     Endpoint
 	Identifier   Identifier
 	RedirectURL  string
+	State        string
+	Verifier     string
 }
 
 type Endpoint struct {
@@ -50,12 +52,20 @@ func New(ProfileURL string) (Config, error) {
 		return Config{}, err
 	}
 
+	state, err := generateState(10)
+	if err != nil {
+		// @TODO do something
+		fmt.Println(err.Error())
+	}
+
 	return Config{
 		ClientID:     runTimeConf.URL,
 		ClientSecret: "",
 		Endpoint:     endpoint,
 		Identifier:   id,
 		RedirectURL:  runTimeConf.RedirectURL,
+		State:        state,
+		Verifier:     "",
 	}, nil
 }
 
@@ -120,6 +130,9 @@ func discoveryAuthServer(url string) (Endpoint, error) {
 }
 
 func (c *Config) GetAuthorizationRequestURL() string {
+	verifier, _ := generateCodeVerifier()
+
+	c.Verifier = verifier
 	params := getHandshakeParams(*c)
 	u, err := url.Parse(c.Endpoint.AuthURL)
 
@@ -134,23 +147,17 @@ func (c *Config) GetAuthorizationRequestURL() string {
 }
 
 func getHandshakeParams(c Config) url.Values {
-	state, err := generateState(10)
-	if err != nil {
-		// @TODO do something
-		fmt.Println(err.Error())
-	}
-
 	// code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
-	verifier, _ := generateCodeVerifier()
+
 	// @TODO Add support for additional code challenge methods in the future.
-	codeChallenge := s256CodeChallenge(verifier)
+	codeChallenge := s256CodeChallenge(c.Verifier)
 
 	//request := map[string][]string{
 	request := url.Values{
 		"response_type":         []string{"code"},
 		"client_id":             []string{c.ClientID},
 		"redirect_uri":          []string{c.RedirectURL},
-		"state":                 []string{state},
+		"state":                 []string{c.State},
 		"code_challenge":        []string{codeChallenge},
 		"code_challenge_method": []string{"S256"},
 		"scope":                 []string{"profile email"},
@@ -180,4 +187,38 @@ func s256CodeChallenge(s string) string {
 	hash := sha256.New()
 	hash.Write([]byte(s))
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
+}
+
+func (c *Config) TokenExchange(state string, code string) string {
+	if c.State != state {
+		// Freak Out
+
+		fmt.Println(errors.New("State does not match."))
+	}
+
+	params := getHandshakeParams(*c)
+	u, err := url.Parse(c.Endpoint.AuthURL)
+
+	if err != nil {
+		// @TODO do something
+		fmt.Println(err.Error())
+	}
+	u.RawQuery = params.Encode()
+
+	return ""
+}
+
+func getTokenExchangeParams(c Config, code string) url.Values {
+	// code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+
+	//request := map[string][]string{
+	request := url.Values{
+		"grant_type":    []string{"authorization_code"},
+		"code":          []string{code},
+		"client_id":     []string{c.ClientID},
+		"redirect_uri":  []string{c.RedirectURL},
+		"code_verifier": []string{c.Verifier},
+	}
+
+	return request
 }

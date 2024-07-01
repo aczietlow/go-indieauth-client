@@ -55,7 +55,7 @@ type Progress struct {
 
 func newProgress() Progress {
 	return Progress{
-		Step: "step 1: Prompt User for ID\n",
+		Step: fmt.Sprintf("\nstep 1: Prompt User for ID\n"),
 	}
 }
 
@@ -109,15 +109,30 @@ func main() {
 		// TODO: fix this later. We can't render form and json in the same callback.
 		c.Render(200, "form", formData)
 
-		data.Progress.Step += fmt.Sprintf("Step 2:\nToken Endpoint:%v\nAuthorization Endpoint:%v", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
+		data.Progress.Step += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)
+		data.Progress.Step += fmt.Sprintf("Step 2: Discover Auth Server Endpoints\n\tToken Endpoint:%v\n\tAuthorization Endpoint:%v\n", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
 
 		redirectURL := indieAuthClient.GetAuthorizationRequestURL()
 		log.Println(redirectURL)
 		data.RedirectURL = redirectURL
 
+		data.Progress.Step += fmt.Sprintf("Step 3: Build Authorization Request\n\tRequest URL - %v\n", redirectURL)
+
 		c.Render(200, "url", data.RedirectURL)
 
 		return c.Render(200, "progress", data.Progress)
+	})
+
+	e.GET("/redirect", func(c echo.Context) error {
+		code := c.QueryParam("code")
+		state := c.QueryParam("state")
+
+		// Apparently this is optional, or indieauth.com doesn't implement it.
+		issuer := c.QueryParam("iss")
+
+		log.Printf("Received values:\ncode:%v\nstate:%v\nissuer:%v\n", code, state, issuer)
+
+		return c.Render(200, "index", data)
 	})
 
 	e.Logger.Fatal(e.Start(":9002"))

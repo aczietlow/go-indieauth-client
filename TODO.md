@@ -7,13 +7,20 @@
     - [x] state
     - [x] code_verify, code_challenge, code_challenge_method
     - [x] redirect URI.
-  - [ ] Then redirect the browser to the authorization endpoint with the constructed request
+  - [x] Then redirect the browser to the authorization endpoint with the constructed request
     - [ ] If possible, keep echo server logic within the website implementation and the client implementation agnostic.
-    - [ ] Test with indieAuth.net
-      - [ ] Will need a valid URL for testing this. Localhost is denied by the spec and implementation 
+    - [x] Test with indieAuth.net
+      - [x] Will need a valid URL for testing this. Localhost is denied by the spec and implementation 
     - [ ] Refactor HTMX to make more sense 
       - Won't be able to have a SPA. At least not right this minute.
-  - [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
+- [ ] Complete the token exchange on redirect from the Auth Server
+  - [ ] Validate state matches request sent
+  - [ ] Build HTTP request to token endpoint
+  - [ ] Make HTTP Request to endpiont
+  - [ ] Validate response from endpoint
+  - [ ] Hold on to access token
+  - [ ] display in browser
+- [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
 
 
 
