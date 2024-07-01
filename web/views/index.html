@@ -8,7 +8,10 @@
         <link href="css/styles.css" rel="stylesheet">
     </head>
     <body>
+        {{ template "id" . }}
+
         {{ template "form" .Form }}
+        {{ template "url" .RedirectURL }}
         <hr />
         {{ template "progress" .Progress }}
 
@@ -21,22 +24,18 @@
                     }
                 });
             })
-
-            // document.addEventListener('htmx:afterOnLoad', (event) => {
-            //     console.log("event bound")
-            //     console.log(event.detail.requestConfig.path)
-            //     if (event.detail.requestConfig.path === '/auth' && event.detail.xhr.status === 200) {
-            //         console.log(event.detail.xhr.responseText)
-            //         const response = JSON.parse(event.detail.xhr.responseText);
-            //         console.log(response.url)
-            //         if (response.url) {
-            //             window.location.href = response.url;
-            //         }
-            //     }
-            // })
         </script>
     </body>
 </html>
+{{ end }}
+
+{{ block "id" . }}
+
+<div class="h-app">
+    <img src="assets/logo.png" class="u-logo">
+    <a href="https://2b64-69-12-46-195.ngrok-free.app/" class="u-url p-name">Demo Indie App</a>
+</div>
+
 {{ end }}
 
 {{ block "form" . }}
@@ -55,11 +54,18 @@
 </form>
 {{ end }}
 
+{{ block "url" . }}
+
+    {{ if . }}
+        <a href="{{.}}">Auth Server Redirect URL</a>
+    {{ end }}
+
+
+{{ end }}
 
 {{ block "progress" . }}
 
 <pre>
-
     <div id="progress" hx-swap-oob="afterbefore">
     {{ print .Step }}
      </div>

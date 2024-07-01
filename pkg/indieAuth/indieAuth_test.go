@@ -3,6 +3,7 @@ package indieAuth
 import (
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -56,5 +57,57 @@ func TestGenerateState(t *testing.T) {
 	expectedLength := ((n + 2) / 3) * 4
 	if len(stateStr) != expectedLength {
 		t.Errorf("Expected length of '%v', got '%v'", expectedLength, len(stateStr))
+	}
+}
+
+func TestNew(t *testing.T) {
+	// Define test cases
+	testCases := []struct {
+		name       string
+		profileURL string
+		wantErr    bool
+		wantConfig Config
+	}{
+		{
+			name:       "Valid Profile URL",
+			profileURL: "https://zietlow.io",
+			wantErr:    false,
+			wantConfig: Config{
+				ClientID:     "http://localhost:9002/",
+				ClientSecret: "",
+				Endpoint: Endpoint{
+					AuthURL:  "https://indieauth.com/auth",
+					TokenURL: "https://tokens.indieauth.com/token",
+				},
+				Identifier: Identifier{
+					ProfileURL: "https://zietlow.io/",
+				},
+				RedirectURL: "http://localhost:9002/redirect",
+			},
+		},
+		{
+			name:       "Invalid Profile URL",
+			profileURL: "invalid",
+			wantErr:    true,
+			wantConfig: Config{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Call the function with the test case parameters
+			config, err := New(tc.profileURL)
+
+			// If we want an error and there isn't one, or vice versa, fail the test.
+			if (err != nil) != tc.wantErr {
+				t.Errorf("New() error = %v\n, wantErr %v\n", err, tc.wantErr)
+				return
+			}
+
+			// Check the returned config
+			if !reflect.DeepEqual(config, tc.wantConfig) {
+				t.Errorf("\nNew() = %v\n, want %v\n", config, tc.wantConfig)
+			}
+		})
 	}
 }

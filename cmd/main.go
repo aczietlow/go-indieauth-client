@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"os"
 )
 
 type Templates struct {
@@ -61,9 +60,10 @@ func newProgress() Progress {
 }
 
 type Data struct {
-	Form     FormData
-	Users    Users
-	Progress Progress
+	Form        FormData
+	Users       Users
+	Progress    Progress
+	RedirectURL string
 }
 
 func newData() Data {
@@ -82,6 +82,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Static("/css", "web/css")
+	e.Static("/assets", "web/assets")
 
 	// Inline debugging.
 	//log.Println()
@@ -99,7 +100,6 @@ func main() {
 		formData.Values["url"] = website
 
 		indieAuthClient, err := indieAuth.New(website)
-		log.Println(os.Getwd())
 
 		if err != nil {
 			formData.Errors["url"] = fmt.Sprintf("Error when trying to parse the url: %v", err)
@@ -112,19 +112,10 @@ func main() {
 		data.Progress.Step += fmt.Sprintf("Step 2:\nToken Endpoint:%v\nAuthorization Endpoint:%v", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
 
 		redirectURL := indieAuthClient.GetAuthorizationRequestURL()
-
-		log.Printf("client_id:%v\n url:%v\n", indieAuthClient.ClientID, indieAuthClient.RedirectURL)
-		log.Printf("id:%v\n", indieAuthClient.Identifier)
-		//http.Redirect(w, r, redirectURL, 301)
-		log.Println("should redirect here.")
-
-		//response := RedirectResponse{
-		//	URL: redirectURL,
-		//}
-
 		log.Println(redirectURL)
-		// @TODO: Find a way to do this that doesn't require JSON.
-		//return c.JSON(http.StatusOK, response)
+		data.RedirectURL = redirectURL
+
+		c.Render(200, "url", data.RedirectURL)
 
 		return c.Render(200, "progress", data.Progress)
 	})
