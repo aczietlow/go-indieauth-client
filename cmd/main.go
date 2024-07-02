@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"net/url"
 )
 
 type Templates struct {
@@ -40,13 +41,20 @@ type Users = map[string]User
 
 type User struct {
 	// Should be a URL type?
-	id string
+	id     string
+	client indieAuth.Config
 }
 
-func newUser(id string) User {
+func newUser(id string) (User, error) {
+	indieAuthClient, err := indieAuth.New(id)
+	if err != nil {
+		return User{}, err
+	}
+
 	return User{
 		id,
-	}
+		indieAuthClient,
+	}, nil
 }
 
 type Progress struct {
@@ -61,7 +69,6 @@ func newProgress() Progress {
 
 type Data struct {
 	Form        FormData
-	Users       Users
 	Progress    Progress
 	RedirectURL string
 }
@@ -73,16 +80,13 @@ func newData() Data {
 	}
 }
 
-type RedirectResponse struct {
-	URL string `json:"url"`
-}
-
 func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Static("/css", "web/css")
 	e.Static("/assets", "web/assets")
+	clientUsers := make(Users)
 
 	// Inline debugging.
 	//log.Println()
@@ -99,12 +103,17 @@ func main() {
 		formData := newFormData()
 		formData.Values["url"] = website
 
-		indieAuthClient, err := indieAuth.New(website)
+		indieAuthClientUser, err := newUser(website)
 
 		if err != nil {
 			formData.Errors["url"] = fmt.Sprintf("Error when trying to parse the url: %v", err)
 			return c.Render(422, "form", formData)
 		}
+		indieAuthClient := indieAuthClientUser.client
+
+		// Just save everything in memory.
+		clientUsers[indieAuthClient.Identifier.ProfileURL] = indieAuthClientUser
+		log.Printf("\n\n%v\n\n", indieAuthClient.Identifier.ProfileURL)
 
 		// TODO: fix this later. We can't render form and json in the same callback.
 		c.Render(200, "form", formData)
@@ -124,13 +133,34 @@ func main() {
 	})
 
 	e.GET("/redirect", func(c echo.Context) error {
+		// @TODO should the website client be the one to pick these out and pass them? or should it just send all Params back as url.Value `c.QueryParams()`
 		code := c.QueryParam("code")
 		state := c.QueryParam("state")
-
+		me := c.QueryParam("me")
 		// Apparently this is optional, or indieauth.com doesn't implement it.
 		issuer := c.QueryParam("iss")
 
+		formData := newFormData()
+		id, err := url.QueryUnescape(me)
+		if err != nil {
+			// @TODO this for sure isn't the correct venue for this.
+			formData.Errors["url"] = fmt.Sprintf("Error when unescaping the me value received: %v", err)
+			return c.Render(422, "form", formData)
+		}
+
+		formData.Values["url"] = id
+		u, ok := clientUsers[id]
+
+		if !ok {
+			formData.Errors["url"] = fmt.Sprintf("No user for id: %v was found registered", id)
+			return c.Render(422, "form", formData)
+		}
+		log.Printf("Checking the current indieAuth Client values\nauthU: %v\ntokenU: %v\n", u.client.Endpoint.AuthURL, u.client.Endpoint.TokenURL)
 		log.Printf("Received values:\ncode:%v\nstate:%v\nissuer:%v\n", code, state, issuer)
+
+		token := u.client.TokenExchange(state, code, issuer)
+
+		log.Println(token)
 
 		return c.Render(200, "index", data)
 	})

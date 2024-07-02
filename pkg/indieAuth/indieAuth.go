@@ -189,21 +189,43 @@ func s256CodeChallenge(s string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (c *Config) TokenExchange(state string, code string) string {
+func (c *Config) TokenExchange(state string, code string, iss string) string {
 	if c.State != state {
 		// Freak Out
-
-		fmt.Println(errors.New("State does not match."))
+		fmt.Println(errors.New("state does not match"))
 	}
 
-	params := getHandshakeParams(*c)
-	u, err := url.Parse(c.Endpoint.AuthURL)
+	authURL, _ := url.QueryUnescape(iss)
+
+	if len(iss) > 0 && iss != authURL {
+		fmt.Println(errors.New("issuer value does not match does not match"))
+	}
+
+	params := getTokenExchangeParams(*c, code)
+	u, err := url.Parse(c.Endpoint.TokenURL)
 
 	if err != nil {
 		// @TODO do something
 		fmt.Println(err.Error())
 	}
 	u.RawQuery = params.Encode()
+
+	resp, err := http.Get(u.String())
+
+	if err != nil {
+		fmt.Println(errors.New("something happened with the token exchange request"))
+	}
+
+	defer resp.Body.Close()
+
+	// @TODO process the response to get the query params
+	/* {
+	  "access_token": "XXXXXX",
+	  "token_type": "Bearer",
+	  "scope": "create update delete",
+	  "me": "https://user.example.net/"
+	}
+	*/
 
 	return ""
 }

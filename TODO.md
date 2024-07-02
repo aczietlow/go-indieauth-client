@@ -14,6 +14,8 @@
     - [ ] Refactor HTMX to make more sense 
       - Won't be able to have a SPA. At least not right this minute.
 - [ ] Complete the token exchange on redirect from the Auth Server
+  - [x] Create state layer in memory
+    - Guess we can have a storage layer later
   - [ ] Validate state matches request sent
   - [ ] Build HTTP request to token endpoint
   - [ ] Make HTTP Request to endpiont
@@ -21,6 +23,7 @@
   - [ ] Hold on to access token
   - [ ] display in browser
 - [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
+- [ ] Read Oauth [spec](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1) for indicating errors, and make a pass at cleaning up code base.
 
 
 
