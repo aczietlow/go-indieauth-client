@@ -1,6 +1,8 @@
 package indieAuth
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -110,4 +112,94 @@ func TestNew(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetTokenURLResponse(t *testing.T) {
+	// Mock HTTP server
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(TokenResponseParams{
+			AccessToken:  "test_access_token",
+			Me:           "test_me",
+			Scope:        "test_scope",
+			Expires:      3600,
+			RefreshToken: "test_refresh_token",
+		})
+	}))
+	defer ts.Close()
+
+	// Prepare parameters
+	params, _ := json.Marshal(TokenRequestParams{
+		GrantType:    "authorization_code",
+		Code:         "test_code",
+		ClientId:     "test_client_id",
+		RedirectURL:  "test_redirect_url",
+		CodeVerifier: "test_code_verifier",
+	})
+
+	// Call the function
+	resp, err := getTokenURLResponse(ts.URL, params)
+
+	// Check for error
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	// Check the response
+	if resp.AccessToken != "test_access_token" {
+		t.Errorf("Expected access token 'test_access_token', got '%s'", resp.AccessToken)
+	}
+	if resp.Me != "test_me" {
+		t.Errorf("Expected me 'test_me', got '%s'", resp.Me)
+	}
+	if resp.Scope != "test_scope" {
+		t.Errorf("Expected scope 'test_scope', got '%s'", resp.Scope)
+	}
+	if resp.Expires != 3600 {
+		t.Errorf("Expected expires '3600', got '%d'", resp.Expires)
+	}
+	if resp.RefreshToken != "test_refresh_token" {
+		t.Errorf("Expected refresh token 'test_refresh_token', got '%s'", resp.RefreshToken)
+	}
+}
+
+func TestGetTokenExchangeParams(t *testing.T) {
+	// Prepare parameters
+	config := Config{
+		ClientID:    "test_client_id",
+		RedirectURL: "test_redirect_url",
+		Verifier:    "test_verifier",
+	}
+	code := "test_code"
+
+	// Call the function
+	result, err := getTokenExchangeParams(config, code)
+
+	// Check for error
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	// Prepare expected result
+	params := TokenRequestParams{
+		GrantType:    "authorization_code",
+		Code:         code,
+		ClientId:     config.ClientID,
+		RedirectURL:  config.RedirectURL,
+		CodeVerifier: config.Verifier,
+	}
+	expected, _ := json.Marshal(&params)
+
+	// Check the result
+	if !bytes.Equal(result, expected) {
+		t.Errorf("Expected '%s', got '%s'", string(expected), string(result))
+	}
+
+	tokenRequest := TokenRequestParams{}
+	_ = json.Unmarshal(expected, &tokenRequest)
+
+	if tokenRequest.Code != code {
+		t.Errorf("Expected '%s', got '%s'", tokenRequest.Code, code)
+	}
+
 }

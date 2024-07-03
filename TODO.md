@@ -16,10 +16,12 @@
 - [ ] Complete the token exchange on redirect from the Auth Server
   - [x] Create state layer in memory
     - Guess we can have a storage layer later
-  - [ ] Validate state matches request sent
-  - [ ] Build HTTP request to token endpoint
-  - [ ] Make HTTP Request to endpiont
+  - [x] Validate state matches request sent
+  - [x] Build HTTP request to token endpoint
+  - [x] Make HTTP Request to endpiont
   - [ ] Validate response from endpoint
+    - Currently fighting with this. Getting "Error when attempting to exchange the token: Application type was application/x-www-form-urlencoded Body response: error=invalid_request&error_description=Missing+%27code%27+parameter"
+    - Need to figure what is getting sent. Maybe the json is wrong, or the code parameter is blank.
   - [ ] Hold on to access token
   - [ ] display in browser
 - [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests

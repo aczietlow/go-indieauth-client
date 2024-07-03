@@ -158,10 +158,14 @@ func main() {
 		log.Printf("Checking the current indieAuth Client values\nauthU: %v\ntokenU: %v\n", u.client.Endpoint.AuthURL, u.client.Endpoint.TokenURL)
 		log.Printf("Received values:\ncode:%v\nstate:%v\nissuer:%v\n", code, state, issuer)
 
-		token := u.client.TokenExchange(state, code, issuer)
+		token, err := u.client.TokenExchange(state, code, issuer)
+		if err != nil {
+			formData.Errors["url"] = fmt.Sprintf("Error when attempting to exchange the token: %v", err.Error())
+			return c.Render(422, "form", formData)
+		}
 
-		log.Println(token)
-
+		log.Printf("\nAccess Token:\n%v", token)
+		log.Printf("\nWhole Token Object:\n%v", u.client.Token)
 		return c.Render(200, "index", data)
 	})
 

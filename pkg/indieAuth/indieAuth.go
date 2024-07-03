@@ -1,15 +1,19 @@
 package indieAuth
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type Config struct {
@@ -21,6 +25,7 @@ type Config struct {
 	RedirectURL  string
 	State        string
 	Verifier     string
+	Token        Token
 }
 
 type Endpoint struct {
@@ -30,7 +35,27 @@ type Endpoint struct {
 }
 
 type Token struct {
+	AccessToken  string
+	Expires      int
+	RefreshToken string
+	Scope        []string
+}
+
+type TokenRequestParams struct {
+	GrantType    string `json:"grant_type"`
+	Code         string `json:"code"`
+	ClientId     string `json:"client_id"`
+	RedirectURL  string `json:"redirect_url"`
+	CodeVerifier string `json:"code_verifier"`
+}
+
+type TokenResponseParams struct {
 	AccessToken string `json:"access_token"`
+	Me          string `json:"me"`
+	Scope       string `json:"scope"`
+	//Profiles	any
+	Expires      int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func New(ProfileURL string) (Config, error) {
@@ -66,6 +91,7 @@ func New(ProfileURL string) (Config, error) {
 		RedirectURL:  runTimeConf.RedirectURL,
 		State:        state,
 		Verifier:     "",
+		Token:        Token{},
 	}, nil
 }
 
@@ -189,58 +215,85 @@ func s256CodeChallenge(s string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (c *Config) TokenExchange(state string, code string, iss string) string {
+func (c *Config) TokenExchange(state string, code string, iss string) (string, error) {
 	if c.State != state {
-		// Freak Out
-		fmt.Println(errors.New("state does not match"))
+		return "", errors.New("state value does not match")
 	}
 
 	authURL, _ := url.QueryUnescape(iss)
 
 	if len(iss) > 0 && iss != authURL {
-		fmt.Println(errors.New("issuer value does not match does not match"))
+		return "", errors.New("issuer value does not match does not match")
 	}
 
-	params := getTokenExchangeParams(*c, code)
-	u, err := url.Parse(c.Endpoint.TokenURL)
+	params, err := getTokenExchangeParams(*c, code)
 
 	if err != nil {
-		// @TODO do something
-		fmt.Println(err.Error())
+		return "", err
 	}
-	u.RawQuery = params.Encode()
 
-	resp, err := http.Get(u.String())
+	tokenResponse, err := getTokenURLResponse(c.Endpoint.TokenURL, params)
 
 	if err != nil {
-		fmt.Println(errors.New("something happened with the token exchange request"))
+		return "", err
 	}
 
-	defer resp.Body.Close()
+	c.Token.AccessToken = tokenResponse.AccessToken
+	c.Token.Expires = tokenResponse.Expires
 
-	// @TODO process the response to get the query params
-	/* {
-	  "access_token": "XXXXXX",
-	  "token_type": "Bearer",
-	  "scope": "create update delete",
-	  "me": "https://user.example.net/"
+	if tokenResponse.RefreshToken != "" {
+		c.Token.RefreshToken = tokenResponse.RefreshToken
 	}
-	*/
 
-	return ""
+	if tokenResponse.Scope != "" {
+		c.Token.Scope = strings.Split(tokenResponse.Scope, " ")
+	}
+
+	return c.Token.AccessToken, nil
 }
 
-func getTokenExchangeParams(c Config, code string) url.Values {
-	// code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+func getTokenURLResponse(u string, params []byte) (TokenResponseParams, error) {
+	resp, err := http.Post(u, "application/json", bytes.NewBuffer(params))
+	if err != nil {
+		return TokenResponseParams{}, err
+	}
+	defer resp.Body.Close()
 
-	//request := map[string][]string{
-	request := url.Values{
-		"grant_type":    []string{"authorization_code"},
-		"code":          []string{code},
-		"client_id":     []string{c.ClientID},
-		"redirect_uri":  []string{c.RedirectURL},
-		"code_verifier": []string{c.Verifier},
+	if r := resp.Header.Get("Content-Type"); r != "application/json" {
+		b, _ := io.ReadAll(resp.Body)
+		e := fmt.Sprintf("Application type was %v\n\nBody response: %v\n", r, string(b))
+		return TokenResponseParams{}, errors.New(e)
 	}
 
-	return request
+	//if resp.StatusCode != http.StatusCreated {
+	//	return TokenResponseParams{}, errors.New(fmt.Sprintf("Received status code of %v when expected 201", resp.StatusCode))
+	//}
+
+	tokenResponse := &TokenResponseParams{}
+	err = json.NewDecoder(resp.Body).Decode(tokenResponse)
+
+	if err != nil {
+		return TokenResponseParams{}, err
+	}
+
+	return *tokenResponse, nil
+}
+
+func getTokenExchangeParams(c Config, code string) ([]byte, error) {
+	// code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+
+	params := &TokenRequestParams{
+		GrantType:    "authorization_code",
+		Code:         code,
+		ClientId:     c.ClientID,
+		RedirectURL:  c.RedirectURL,
+		CodeVerifier: c.Verifier,
+	}
+
+	body, err := json.Marshal(params)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return body, nil
 }
