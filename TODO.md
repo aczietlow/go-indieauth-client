@@ -19,11 +19,12 @@
   - [x] Validate state matches request sent
   - [x] Build HTTP request to token endpoint
   - [x] Make HTTP Request to endpiont
-  - [ ] Validate response from endpoint
+  - [x] Validate response from endpoint
     - Currently fighting with this. Getting "Error when attempting to exchange the token: Application type was application/x-www-form-urlencoded Body response: error=invalid_request&error_description=Missing+%27code%27+parameter"
     - Need to figure what is getting sent. Maybe the json is wrong, or the code parameter is blank.
-  - [ ] Hold on to access token
-  - [ ] display in browser
+  - [x] Perform Authorization Server Confirmation
+  - [x] Hold on to access token
+  - [x] display in browser
 - [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
 - [ ] Read Oauth [spec](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1) for indicating errors, and make a pass at cleaning up code base.
 

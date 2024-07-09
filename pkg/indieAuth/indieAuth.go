@@ -1,7 +1,6 @@
 package indieAuth
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -13,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -39,14 +39,6 @@ type Token struct {
 	Expires      int
 	RefreshToken string
 	Scope        []string
-}
-
-type TokenRequestParams struct {
-	GrantType    string `json:"grant_type"`
-	Code         string `json:"code"`
-	ClientId     string `json:"client_id"`
-	RedirectURL  string `json:"redirect_url"`
-	CodeVerifier string `json:"code_verifier"`
 }
 
 type TokenResponseParams struct {
@@ -97,7 +89,15 @@ func New(ProfileURL string) (Config, error) {
 
 // @TODO add support for newer metadata endpoints as well.
 func discoveryAuthServer(url string) (Endpoint, error) {
-	resp, err := http.Get(url)
+
+	req, err := http.NewRequest("GET", url, nil)
+
+	if err != nil {
+		return Endpoint{}, err
+	}
+
+	//debug(httputil.DumpRequestOut(req, true))
+	resp, err := (&http.Client{}).Do(req)
 
 	if err != nil {
 		return Endpoint{}, err
@@ -226,13 +226,25 @@ func (c *Config) TokenExchange(state string, code string, iss string) (string, e
 		return "", errors.New("issuer value does not match does not match")
 	}
 
-	params, err := getTokenExchangeParams(*c, code)
+	params := getTokenExchangeParams(*c, code)
+
+	tokenResponse, err := getTokenURLResponse(c.Endpoint.TokenURL, params)
 
 	if err != nil {
 		return "", err
 	}
 
-	tokenResponse, err := getTokenURLResponse(c.Endpoint.TokenURL, params)
+	profileURL, _ := url.QueryUnescape(tokenResponse.Me)
+
+	if profileURL != c.Identifier.ProfileURL {
+		endpoints, err := discoveryAuthServer(profileURL)
+		if err != nil {
+			return "", err
+		}
+		if endpoints.AuthURL != c.Endpoint.AuthURL {
+			return "", errors.New(fmt.Sprintf("Auth Server responded with me value: %v. This did not match the Profile URL provided %v AND responded with a different authorization server,", endpoints.AuthURL, c.Endpoint.AuthURL))
+		}
+	}
 
 	if err != nil {
 		return "", err
@@ -252,8 +264,21 @@ func (c *Config) TokenExchange(state string, code string, iss string) (string, e
 	return c.Token.AccessToken, nil
 }
 
-func getTokenURLResponse(u string, params []byte) (TokenResponseParams, error) {
-	resp, err := http.Post(u, "application/json", bytes.NewBuffer(params))
+func getTokenURLResponse(u string, params url.Values) (TokenResponseParams, error) {
+
+	req, err := http.NewRequest("POST", u, strings.NewReader(params.Encode()))
+
+	if err != nil {
+		return TokenResponseParams{}, err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	//debug(httputil.DumpRequestOut(req, true))
+	resp, err := (&http.Client{}).Do(req)
+
+	//debug(httputil.DumpResponse(resp, true))
 	if err != nil {
 		return TokenResponseParams{}, err
 	}
@@ -265,9 +290,9 @@ func getTokenURLResponse(u string, params []byte) (TokenResponseParams, error) {
 		return TokenResponseParams{}, errors.New(e)
 	}
 
-	//if resp.StatusCode != http.StatusCreated {
-	//	return TokenResponseParams{}, errors.New(fmt.Sprintf("Received status code of %v when expected 201", resp.StatusCode))
-	//}
+	if resp.StatusCode != http.StatusOK {
+		return TokenResponseParams{}, errors.New(fmt.Sprintf("Received status code of %v when expected 201", resp.StatusCode))
+	}
 
 	tokenResponse := &TokenResponseParams{}
 	err = json.NewDecoder(resp.Body).Decode(tokenResponse)
@@ -279,21 +304,38 @@ func getTokenURLResponse(u string, params []byte) (TokenResponseParams, error) {
 	return *tokenResponse, nil
 }
 
-func getTokenExchangeParams(c Config, code string) ([]byte, error) {
+func getTokenExchangeParams(c Config, code string) url.Values {
 	// code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
 
-	params := &TokenRequestParams{
-		GrantType:    "authorization_code",
-		Code:         code,
-		ClientId:     c.ClientID,
-		RedirectURL:  c.RedirectURL,
-		CodeVerifier: c.Verifier,
+	params := url.Values{
+		"grant_type":    []string{"authorization_code"},
+		"code":          []string{code},
+		"client_id":     []string{c.ClientID},
+		"redirect_uri":  []string{c.RedirectURL},
+		"code_verifier": []string{c.Verifier},
 	}
 
-	body, err := json.Marshal(params)
-	if err != nil {
-		return []byte{}, err
-	}
+	return params
+}
 
-	return body, nil
+func debug(data []byte, err error) error {
+	if err == nil {
+		output := fmt.Sprintf("%s\n\n", data)
+		//f, err := os.Create("data.txt")
+		f, err := os.OpenFile("data.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		_, err = f.WriteString(output)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	} else {
+		return err
+	}
 }

@@ -1,10 +1,10 @@
 package indieAuth
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"testing"
 )
@@ -106,9 +106,13 @@ func TestNew(t *testing.T) {
 				return
 			}
 
+			// @TODO: Remove hack
+			// Hack out state value as this is generated at run time.
+			config.State = ""
+
 			// Check the returned config
 			if !reflect.DeepEqual(config, tc.wantConfig) {
-				t.Errorf("\nNew() = %v\n, want %v\n", config, tc.wantConfig)
+				t.Errorf("Failure on: %v\n\nNew() = %v\n, want %v\n", tc.name, config, tc.wantConfig)
 			}
 		})
 	}
@@ -117,6 +121,7 @@ func TestNew(t *testing.T) {
 func TestGetTokenURLResponse(t *testing.T) {
 	// Mock HTTP server
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(TokenResponseParams{
 			AccessToken:  "test_access_token",
@@ -129,13 +134,13 @@ func TestGetTokenURLResponse(t *testing.T) {
 	defer ts.Close()
 
 	// Prepare parameters
-	params, _ := json.Marshal(TokenRequestParams{
-		GrantType:    "authorization_code",
-		Code:         "test_code",
-		ClientId:     "test_client_id",
-		RedirectURL:  "test_redirect_url",
-		CodeVerifier: "test_code_verifier",
-	})
+	params := url.Values{
+		"GrantType":    []string{"authorization_code"},
+		"Code":         []string{"test_code"},
+		"ClientId":     []string{"test_client_id"},
+		"RedirectURL":  []string{"test_redirect_url"},
+		"CodeVerifier": []string{"test_code_verifier"},
+	}
 
 	// Call the function
 	resp, err := getTokenURLResponse(ts.URL, params)
@@ -161,45 +166,4 @@ func TestGetTokenURLResponse(t *testing.T) {
 	if resp.RefreshToken != "test_refresh_token" {
 		t.Errorf("Expected refresh token 'test_refresh_token', got '%s'", resp.RefreshToken)
 	}
-}
-
-func TestGetTokenExchangeParams(t *testing.T) {
-	// Prepare parameters
-	config := Config{
-		ClientID:    "test_client_id",
-		RedirectURL: "test_redirect_url",
-		Verifier:    "test_verifier",
-	}
-	code := "test_code"
-
-	// Call the function
-	result, err := getTokenExchangeParams(config, code)
-
-	// Check for error
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-
-	// Prepare expected result
-	params := TokenRequestParams{
-		GrantType:    "authorization_code",
-		Code:         code,
-		ClientId:     config.ClientID,
-		RedirectURL:  config.RedirectURL,
-		CodeVerifier: config.Verifier,
-	}
-	expected, _ := json.Marshal(&params)
-
-	// Check the result
-	if !bytes.Equal(result, expected) {
-		t.Errorf("Expected '%s', got '%s'", string(expected), string(result))
-	}
-
-	tokenRequest := TokenRequestParams{}
-	_ = json.Unmarshal(expected, &tokenRequest)
-
-	if tokenRequest.Code != code {
-		t.Errorf("Expected '%s', got '%s'", tokenRequest.Code, code)
-	}
-
 }

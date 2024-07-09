@@ -155,8 +155,6 @@ func main() {
 			formData.Errors["url"] = fmt.Sprintf("No user for id: %v was found registered", id)
 			return c.Render(422, "form", formData)
 		}
-		log.Printf("Checking the current indieAuth Client values\nauthU: %v\ntokenU: %v\n", u.client.Endpoint.AuthURL, u.client.Endpoint.TokenURL)
-		log.Printf("Received values:\ncode:%v\nstate:%v\nissuer:%v\n", code, state, issuer)
 
 		token, err := u.client.TokenExchange(state, code, issuer)
 		if err != nil {
@@ -164,8 +162,8 @@ func main() {
 			return c.Render(422, "form", formData)
 		}
 
-		log.Printf("\nAccess Token:\n%v", token)
-		log.Printf("\nWhole Token Object:\n%v", u.client.Token)
+		data.Progress.Step += fmt.Sprintf("Step 4: Exchanged Auth code for Bearer Token\n\tToken:%v\n", token)
+
 		return c.Render(200, "index", data)
 	})
 
