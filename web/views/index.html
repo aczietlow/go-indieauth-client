@@ -8,13 +8,40 @@
         <link href="css/styles.css" rel="stylesheet">
     </head>
     <body>
-        {{ template "id" . }}
+        <header class="header">
+            <nav class="header__navigation">
+                <div class="brand">
+                    <div class="h-app">
+                        <img src="assets/logo.png" class="u-logo">
+                        <a href="/" class="u-url p-name">Indie Auth Playground</a>
+                    </div>
+                </div>
 
-        {{ template "form" .Form }}
-        {{ template "url" .RedirectURL }}
-        <hr />
-        {{ template "progress" .Progress }}
 
+                <div class="menu nav__body">
+                    <div class="nav__parent">
+                        <a class="nav__item" title="home" href="/">Home</a>
+                    </div>
+                    <div class="nav__parent">
+                        <a class="nav__item" title="Auth Endpoint" href="/auth">Auth Endpoint</a>
+                    </div>
+                    <div class="socials-nav__parent">
+                        <a href="https://github.com/aczietlow" rel="noopener me" target="_blank">Github</a>
+                        <a href="https://zietlow.io/" rel="noopener me" target="_blank">Website</a>
+                    </div>
+                </div>
+
+
+
+            </nav>
+        </header>
+
+        <div class="content">
+            {{ template "form" .Form }}
+            {{ template "url" .RedirectURL }}
+            <hr />
+            {{ template "progress" .Progress }}
+        </div>
         <script>
             document.addEventListener("DOMContentLoaded", (event) => {
                 document.body.addEventListener('htmx:beforeSwap', function(event) {
@@ -29,23 +56,14 @@
 </html>
 {{ end }}
 
-{{ block "id" . }}
-
-<div class="h-app">
-    <img src="assets/logo.png" class="u-logo">
-    <a href="https://2b64-69-12-46-195.ngrok-free.app/" class="u-url p-name">Demo Indie App</a>
-</div>
-
-{{ end }}
-
 {{ block "form" . }}
 
 <div class="auth-wrapper" id="login-form">
-    <div class="login-form"  >
+    <div class="login-form__container"  >
         <div class="login-form__header">
             <h1>Log in with IndieAuth</h1>
         </div>
-        <div class="login-form__container">
+        <div class="login-form">
             <form hx-post="/auth" hx-swap="innerHTML" hx-target="#login-form">
                 <div class="login-form__input-label">
                     <label for="url">ID (Web URL)</label>
@@ -56,7 +74,10 @@
                 {{ if .Errors.url }}
                 <div style="color:red"> {{ .Errors.url }} </div>
                 {{ end }}
-                <button type="submit">Sign In</button>
+                <div class="login-form__button">
+                    <button type="submit">Sign In</button>
+                </div>
+
 
             </form>
         </div>
