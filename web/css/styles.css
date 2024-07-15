@@ -96,6 +96,10 @@ body {
 .auth-wrapper > div {
     flex: 1;
     padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 @media (max-width: 768px) {
@@ -139,4 +143,15 @@ body {
     background-color: #e00;
     color: #fff;
     margin-top: 1rem;
+    line-height: 24px;
+}
+
+.login-info__container {
+    padding: 20px;
+    & pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
 }

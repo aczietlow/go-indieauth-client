@@ -37,10 +37,30 @@
         </header>
 
         <div class="content">
-            {{ template "form" .Form }}
+            <div class="auth-wrapper">
+                <div class="login-form__container"  >
+                    <div class="login-form__header">
+                        <h1>Log in with IndieAuth</h1>
+                    </div>
+                    <div class="login-form" id="login-form">
+                        {{ template "form" .Form }}
+                    </div>
+                    <div class="login-form__footer">
+                        <span>Footer Notes</span>
+                    </div>
+                </div>
+                <div class="login-info__container">
+                    <h2>Additional Information</h2>
+                    <div>
+                        {{ template "progress" .Progress }}
+                    </div>
+                </div>
+            </div>
+
+
             {{ template "url" .RedirectURL }}
             <hr />
-            {{ template "progress" .Progress }}
+            <img src="assets/sequence-diagram.png" />
         </div>
         <script>
             document.addEventListener("DOMContentLoaded", (event) => {
@@ -57,52 +77,29 @@
 {{ end }}
 
 {{ block "form" . }}
-
-<div class="auth-wrapper" id="login-form">
-    <div class="login-form__container"  >
-        <div class="login-form__header">
-            <h1>Log in with IndieAuth</h1>
-        </div>
-        <div class="login-form">
-            <form hx-post="/auth" hx-swap="innerHTML" hx-target="#login-form">
-                <div class="login-form__input-label">
-                    <label for="url">ID (Web URL)</label>
-                </div>
-                <input
-                    {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
-                    type="text" name="url" placeholder="domain.com">
-                {{ if .Errors.url }}
-                <div style="color:red"> {{ .Errors.url }} </div>
-                {{ end }}
-                <div class="login-form__button">
-                    <button type="submit">Sign In</button>
-                </div>
-
-
-            </form>
-        </div>
-        <div class="login-form__footer">
-            <span>Footer Notes</span>
-        </div>
+<form hx-post="/auth" hx-swap="outerHTML">
+    <div class="login-form__input-label">
+        <label for="url">ID (Web URL)</label>
     </div>
-    <div>
-        <h2>Auth Information</h2>
+    <input
+            {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
+            type="text" name="url" placeholder="domain.com">
+    {{ if .Errors.url }}
+    <div style="color:red"> {{ .Errors.url }} </div>
+    {{ end }}
+    <div class="login-form__button">
+        <button type="submit">Sign In</button>
     </div>
-</div>
-
+</form>
 {{ end }}
 
 {{ block "url" . }}
-
     {{ if . }}
         <a href="{{.}}">Auth Server Redirect URL</a>
     {{ end }}
-
-
 {{ end }}
 
 {{ block "progress" . }}
-
 <pre>
     <div id="progress" hx-swap-oob="afterbefore">
     {{ print .Step }}
