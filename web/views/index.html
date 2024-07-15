@@ -40,13 +40,13 @@
 
 {{ block "form" . }}
 
-<div class="auth-wrapper">
-    <div class="login-form" >
+<div class="auth-wrapper" id="login-form">
+    <div class="login-form"  >
         <div class="login-form__header">
             <h1>Log in with IndieAuth</h1>
         </div>
         <div class="login-form__container">
-            <form hx-post="/auth" hx-swap="outerHTML">
+            <form hx-post="/auth" hx-swap="innerHTML" hx-target="#login-form">
                 <div class="login-form__input-label">
                     <label for="url">ID (Web URL)</label>
                 </div>
@@ -67,7 +67,6 @@
     <div>
         <h2>Auth Information</h2>
     </div>
-
 </div>
 
 {{ end }}
