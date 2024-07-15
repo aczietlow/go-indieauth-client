@@ -40,18 +40,36 @@
 
 {{ block "form" . }}
 
-<form hx-post="/auth" hx-swap="outerHTML">
-    url: <input
-        {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
-        type="text" name="url" placeholder="domain.com">
+<div class="auth-wrapper">
+    <div class="login-form" >
+        <div class="login-form__header">
+            <h1>Log in with IndieAuth</h1>
+        </div>
+        <div class="login-form__container">
+            <form hx-post="/auth" hx-swap="outerHTML">
+                <div class="login-form__input-label">
+                    <label for="url">ID (Web URL)</label>
+                </div>
+                <input
+                    {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
+                    type="text" name="url" placeholder="domain.com">
+                {{ if .Errors.url }}
+                <div style="color:red"> {{ .Errors.url }} </div>
+                {{ end }}
+                <button type="submit">Sign In</button>
 
-    <button type="submit">Sign In</button>
+            </form>
+        </div>
+        <div class="login-form__footer">
+            <span>Footer Notes</span>
+        </div>
+    </div>
+    <div>
+        <h2>Auth Information</h2>
+    </div>
 
-    {{ if .Errors.url }}
-    <div style="color:red"> {{ .Errors.url }} </div>
-    {{ end }}
+</div>
 
-</form>
 {{ end }}
 
 {{ block "url" . }}

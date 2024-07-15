@@ -1,4 +1,3 @@
-  
 - [x] complete url canonicalization
 - [x] Move on to creating the client authorization request
   - The client builds the authorization request including its 
@@ -36,3 +35,4 @@ Post MVP
 - [ ] Allow for composable [scopes](https://indieauth.spec.indieweb.org/#profile-information-li-1). No need to force profile and email all the time.
 - [ ] Add additional code-challenge methods other than SHA256
 - [ ] refactor indieAuth config file. Currently, am duplicating a thing
+- [ ] Grab a refresh Token
