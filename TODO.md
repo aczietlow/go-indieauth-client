@@ -24,9 +24,15 @@
   - [x] Perform Authorization Server Confirmation
   - [x] Hold on to access token
   - [x] display in browser
-- [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
 - [ ] Read Oauth [spec](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1) for indicating errors, and make a pass at cleaning up code base.
-
+- [ ] Make scopes selectable in the form
+- [ ] Break flow of redirects
+  - [ ] Discovery request should display to the user to show values returned; Show authorization request URL to the user
+  - [ ] Using middleware, capture the actual http requests and response for output client side
+  - [ ] Actually output these client side
+  - [ ] Find a way to show the client app verifying authorization code and validating identifier
+  - [ ] Show the user the access token expiration date
+- [ ] Actually use the access token for "something"
 
 
 Post MVP
@@ -36,3 +42,4 @@ Post MVP
 - [ ] Add additional code-challenge methods other than SHA256
 - [ ] refactor indieAuth config file. Currently, am duplicating a thing
 - [ ] Grab a refresh Token
+- [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
