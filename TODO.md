@@ -12,7 +12,7 @@
       - [x] Will need a valid URL for testing this. Localhost is denied by the spec and implementation 
     - [ ] Refactor HTMX to make more sense 
       - Won't be able to have a SPA. At least not right this minute.
-- [ ] Complete the token exchange on redirect from the Auth Server
+- [x] Complete the token exchange on redirect from the Auth Server
   - [x] Create state layer in memory
     - Guess we can have a storage layer later
   - [x] Validate state matches request sent

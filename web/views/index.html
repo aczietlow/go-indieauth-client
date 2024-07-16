@@ -52,11 +52,12 @@
                 <div class="login-info__container">
                     <h2>Additional Information</h2>
                     <div>
+                        {{ template "discovery.html" . }}
+
                         {{ template "progress" .Progress }}
                     </div>
                 </div>
             </div>
-
 
             {{ template "url" .RedirectURL }}
             <hr />

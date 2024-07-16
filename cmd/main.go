@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/url"
+	"path/filepath"
 )
 
 type Templates struct {
@@ -20,8 +21,30 @@ func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Co
 }
 
 func newTemplate() *Templates {
+	// @TODO During boot, find all directories with templates.
+	templateDirs := []string{
+		"web/views",
+		"web/views/partials",
+	}
+
+	templates := template.New("")
+	for _, dir := range templateDirs {
+		// Using filepath.Glob to get all template files
+		files, err := filepath.Glob(filepath.Join(dir, "*.html"))
+		if err != nil {
+			panic(err)
+		}
+		for _, file := range files {
+			// Parse each template file and add to the template set
+			_, err = templates.ParseFiles(file)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
 	return &Templates{
-		templates: template.Must(template.ParseGlob("web/views/*.html")),
+		templates: templates,
 	}
 }
 
@@ -115,7 +138,6 @@ func main() {
 		clientUsers[indieAuthClient.Identifier.ProfileURL] = indieAuthClientUser
 		log.Printf("\n\n%v\n\n", indieAuthClient.Identifier.ProfileURL)
 
-		// TODO: fix this later. We can't render form and json in the same callback.
 		c.Render(200, "form", formData)
 
 		data.Progress.Step += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)
