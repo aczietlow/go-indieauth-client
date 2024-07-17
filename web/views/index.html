@@ -50,7 +50,6 @@
                     </div>
                 </div>
                 <div class="login-info__container">
-                    <h2>Additional Information</h2>
                     <div>
                         {{ template "discovery.html" . }}
 
@@ -79,15 +78,21 @@
 
 {{ block "form" . }}
 <form hx-post="/auth" hx-swap="outerHTML">
+    {{ if .Errors.url }}
+    <div style="color:red"> {{ .Errors.url }} </div>
+    {{ end }}
     <div class="login-form__input-label">
         <label for="url">ID (Web URL)</label>
     </div>
     <input
             {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
             type="text" name="url" placeholder="domain.com">
-    {{ if .Errors.url }}
-    <div style="color:red"> {{ .Errors.url }} </div>
-    {{ end }}
+    <input
+            {{ if .Values.authorization_endpoint }} value="{{.Values.authorization_endpoint}}" {{ end }}
+            type="text" name="authorization_endpoint" disabled>
+    <input
+            {{ if .Values.token_endpoint }} value="{{.Values.token_endpoint}}" {{ end }}
+            type="text" name="token_endpoint" disabled>
     <div class="login-form__button">
         <button type="submit">Sign In</button>
     </div>

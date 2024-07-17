@@ -138,6 +138,9 @@ func main() {
 		clientUsers[indieAuthClient.Identifier.ProfileURL] = indieAuthClientUser
 		log.Printf("\n\n%v\n\n", indieAuthClient.Identifier.ProfileURL)
 
+		formData.Values["authorization_endpoint"] = indieAuthClient.Endpoint.AuthURL
+		formData.Values["token_endpoint"] = indieAuthClient.Endpoint.TokenURL
+
 		c.Render(200, "form", formData)
 
 		data.Progress.Step += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)

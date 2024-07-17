@@ -1,5 +1,33 @@
 {{ define "authorization-request.html" }}
 
-<h1>Auth Request</h1>
+<h2>Authorization Request</h2>
+
+<p>The client will build an authorization request by adding the discovered authorization_endpoint and adding required parameters to the URL</p>
+
+<dl>
+    <dt>response_type=code</dt>
+    <dd>let's the server know an authorization code should be returned as the response</dd>
+
+    <dt>client_id</dt>
+    <dd>the URL of the client (URLs are valid identifiers in indieAuth</dd>
+
+    <dt>redirect_uri</dt>
+    <dd>the redirect URL indicating where th user should be redirected to after approving the request on the server</dd>
+
+    <dt>state</dt>
+    <dd>parameter set by the client, to be returned unmodified back to be returned UNMODIFIED to the client. Helps to mitigate CSRF</dd>
+
+    <dt>code_challenge</dt>
+    <dd>PKCE implementation. A client generated secret, unique to each authorization request. This is used to verify the client app using the authorization code is the same the issued the authorization code helping mitigate against code injection. This secret is then hashed and base64 encoded to be sent to the server</dd>
+
+    <dt>code_challenge_method</dt>
+    <dd>The type of hash used when generating the code sent in the request. e.g. "S256" for SHA256 Hashing</dd>
+
+    <dt>scope</dt>
+    <dd>(optional) a space-separated list of scopes the client is returning. e.g "profile" or "profile create". If omitted from the request, the authorization server MUST NOT issue an access token</dd>
+
+    <dt>me</dt>
+    <dd>(optional) the URL that the user entered</dd>
+</dl>
 
 {{ end }}

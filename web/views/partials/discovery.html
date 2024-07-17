@@ -1,5 +1,28 @@
 {{ define "discovery.html" }}
 
-<p>// @TODO Add details about the discovery state here.</p>
+<h2>Discovery</h2>
+
+<p>Users are identified by a URL.</p>
+<ul>
+    <li>URLs MUST have either an https or http scheme</li>
+    <li>MUST contain a path component (/ is a valid path)</li>
+    <li>MUST NOT contain single-dot or double-dot path segments</li>
+    <li>MAY contain a query string component</li>
+    <li>MUST NOT contain a fragment component</li>
+    <li>MUST NOT contain a username or password component</li>
+    <li>MUST NOT contain a port</li>
+    <li>MUST be domain names and MUST NOT be ipv4 or ipv6 addresses</li>
+</ul>
+
+<p>When providing a URL the indieAuth client app will attempt to discover the indieAuth authorization server as defined by the website of the URL provided.</p>
+
+<ol>
+    <li>Client fetches and parses html from URL provided</li>
+    <li>Looks for the href value of link element with the attribute rel="indieauth-metadata"</li>
+    <li>The client requests the authorization and token endpoints from the indieAuth server</li>
+</ol>
 
 {{ end }}
+
+
+
