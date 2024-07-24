@@ -43,7 +43,7 @@
                         <h1>Log in with IndieAuth</h1>
                     </div>
                     <div class="login-form" id="login-form">
-                        {{ template "form" .Form }}
+                        {{ template "login-form" .Form }}
                     </div>
                     <div class="login-form__footer">
                         <span>Footer Notes</span>
@@ -72,7 +72,7 @@
 </html>
 {{ end }}
 
-{{ block "form" . }}
+{{ block "login-form" . }}
 <form hx-post="/auth" hx-swap="outerHTML">
     {{ if .Errors.url }}
     <div style="color:red"> {{ .Errors.url }} </div>
@@ -104,6 +104,12 @@
 {{ block "progress" . }}
 
 <div id="progress" hx-swap-oob="afterbefore" >
+    <pre>
+        <div>
+            {{ print .Info }}
+        </div>
+    </pre>
+
     {{ if eq .Step "discovery" }}
         {{ template "discovery.html" . }}
     {{ else if eq  .Step "authorization-request" }}
@@ -111,12 +117,6 @@
     {{ else if eq  .Step "redeeming-authorization-code" }}
         {{ template "redeeming-authorization-code.html" . }}
     {{ end }}
-
-    <pre>
-    <div>
-    {{ print .Info }}
-     </div>
-    </pre>
 
 </div>
 
