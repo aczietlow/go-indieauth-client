@@ -38,7 +38,7 @@
 
         <div class="content">
             <div class="auth-wrapper">
-                <div class="login-form__container"  >
+                <div class="login-form__container">
                     <div class="login-form__header">
                         <h1>Log in with IndieAuth</h1>
                     </div>
@@ -50,11 +50,7 @@
                     </div>
                 </div>
                 <div class="login-info__container">
-                    <div>
-                        {{ template "discovery.html" . }}
-
-                        {{ template "progress" .Progress }}
-                    </div>
+                    {{ template "progress" .Progress }}
                 </div>
             </div>
 
@@ -106,10 +102,23 @@
 {{ end }}
 
 {{ block "progress" . }}
-<pre>
-    <div id="progress" hx-swap-oob="afterbefore">
-    {{ print .Step }}
+
+<div id="progress" hx-swap-oob="afterbefore" >
+    {{ if eq .Step "discovery" }}
+        {{ template "discovery.html" . }}
+    {{ else if eq  .Step "authorization-request" }}
+        {{ template "authorization-request.html" . }}
+    {{ else if eq  .Step "redeeming-authorization-code" }}
+        {{ template "redeeming-authorization-code.html" . }}
+    {{ end }}
+
+    <pre>
+    <div>
+    {{ print .Info }}
      </div>
-</pre>
+    </pre>
+
+</div>
+
 {{ end }}
 

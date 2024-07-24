@@ -81,12 +81,14 @@ func newUser(id string) (User, error) {
 }
 
 type Progress struct {
+	Info string
 	Step string
 }
 
 func newProgress() Progress {
 	return Progress{
-		Step: fmt.Sprintf("\nstep 1: Prompt User for ID\n"),
+		Info: fmt.Sprintf("\nstep 1: Prompt User for ID\n"),
+		Step: "discovery",
 	}
 }
 
@@ -143,14 +145,15 @@ func main() {
 
 		c.Render(200, "form", formData)
 
-		data.Progress.Step += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)
-		data.Progress.Step += fmt.Sprintf("Step 2: Discover Auth Server Endpoints\n\tToken Endpoint:%v\n\tAuthorization Endpoint:%v\n", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
+		data.Progress.Info += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)
+		data.Progress.Info += fmt.Sprintf("Info 2: Discover Auth Server Endpoints\n\tToken Endpoint:%v\n\tAuthorization Endpoint:%v\n", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
 
 		redirectURL := indieAuthClient.GetAuthorizationRequestURL()
 		log.Println(redirectURL)
 		data.RedirectURL = redirectURL
 
-		data.Progress.Step += fmt.Sprintf("Step 3: Build Authorization Request\n\tRequest URL - %v\n", redirectURL)
+		data.Progress.Info += fmt.Sprintf("Info 3: Build Authorization Request\n\tRequest URL - %v\n", redirectURL)
+		data.Progress.Step = "authorization-request"
 
 		c.Render(200, "url", data.RedirectURL)
 
@@ -187,8 +190,9 @@ func main() {
 			return c.Render(422, "form", formData)
 		}
 
-		data.Progress.Step += fmt.Sprintf("Step 4: Exchanged Auth code for Bearer Token\n\tToken:%v\n", token)
-
+		data.Progress.Info += fmt.Sprintf("Info 4: Exchanged Auth code for Bearer Token\n\tToken:%v\n", token)
+		data.Form = formData
+		data.Progress.Step = "redeeming-authorization-code"
 		return c.Render(200, "index", data)
 	})
 
