@@ -1,0 +1,31 @@
+{{ define "header.html" }}
+
+<header class="header">
+    <nav class="header__navigation">
+        <div class="brand">
+            <div class="h-app">
+                <img src="assets/logo.png" class="u-logo">
+                <a href="/" class="u-url p-name">Indie Auth Playground</a>
+            </div>
+        </div>
+
+
+        <div class="menu nav__body">
+            <div class="nav__parent">
+                <a class="nav__item" title="home" href="/">Home</a>
+            </div>
+            <div class="nav__parent">
+                <a class="nav__item" title="Auth Endpoint" href="/secrets">Super Secret</a>
+            </div>
+            <div class="socials-nav__parent">
+                <a href="https://github.com/aczietlow" rel="noopener me" target="_blank">Github</a>
+                <a href="https://zietlow.io/" rel="noopener me" target="_blank">Website</a>
+            </div>
+        </div>
+
+
+
+    </nav>
+</header>
+
+{{ end }}

@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"net/http"
 	"net/url"
 	"path/filepath"
 )
@@ -35,6 +36,7 @@ func newTemplate() *Templates {
 			panic(err)
 		}
 		for _, file := range files {
+			log.Printf("Adding %v to temaplte path", file)
 			// Parse each template file and add to the template set
 			_, err = templates.ParseFiles(file)
 			if err != nil {
@@ -81,8 +83,9 @@ func newUser(id string) (User, error) {
 }
 
 type Progress struct {
-	Info string
-	Step string
+	Info  string
+	Step  string
+	Query string
 }
 
 func newProgress() Progress {
@@ -93,15 +96,17 @@ func newProgress() Progress {
 }
 
 type Data struct {
-	Form        FormData
-	Progress    Progress
-	RedirectURL string
+	Form          FormData
+	Progress      Progress
+	RedirectURL   string
+	Authenticated bool
 }
 
 func newData() Data {
 	return Data{
-		Form:     newFormData(),
-		Progress: newProgress(),
+		Form:          newFormData(),
+		Progress:      newProgress(),
+		Authenticated: false,
 	}
 }
 
@@ -143,7 +148,7 @@ func main() {
 		formData.Values["authorization_endpoint"] = indieAuthClient.Endpoint.AuthURL
 		formData.Values["token_endpoint"] = indieAuthClient.Endpoint.TokenURL
 
-		c.Render(200, "form", formData)
+		c.Render(200, "login-form", formData)
 
 		data.Progress.Info += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)
 		data.Progress.Info += fmt.Sprintf("Info 2: Discover Auth Server Endpoints\n\tToken Endpoint:%v\n\tAuthorization Endpoint:%v\n", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
@@ -190,9 +195,46 @@ func main() {
 			return c.Render(422, "form", formData)
 		}
 
+		formData.Values["authorization_endpoint"] = u.client.Endpoint.AuthURL
+		formData.Values["token_endpoint"] = u.client.Endpoint.TokenURL
+
 		data.Progress.Info += fmt.Sprintf("Info 4: Exchanged Auth code for Bearer Token\n\tToken:%v\n", token)
 		data.Form = formData
 		data.Progress.Step = "redeeming-authorization-code"
+
+		// Write a cookie
+		cookie := new(http.Cookie)
+		cookie.Name = "indieAuthClient"
+		cookie.Value = token
+		//cookie.HttpOnly = true
+		//cookie.Expires = time.Now().Add(24 * time.Hour)
+		c.SetCookie(cookie)
+		return c.Render(200, "index", data)
+	})
+
+	e.GET("/secrets", func(c echo.Context) error {
+		// @TODO pull the access token from a cookie in the user browser instead of from an in memory object.
+		cookie, err := c.Cookie("indieAuthClient")
+
+		if err != nil {
+			// @TODO 200's are NOT how access denied is handled..... Drupal
+			log.Printf("Encountered an error %v", err.Error())
+			return c.Render(200, "secrets", data)
+		}
+		token := cookie.Value
+		log.Printf("User token is %v", token)
+
+		data.Authenticated = true
+
+		// @TODO Clean the "data" structure up to be more sane
+		return c.Render(200, "secrets", data)
+	})
+
+	// @TODO Remove poor mans data wipe.
+	e.GET("/reset", func(c echo.Context) error {
+		clientUsers = make(Users)
+		data = newData()
+
 		return c.Render(200, "index", data)
 	})
 

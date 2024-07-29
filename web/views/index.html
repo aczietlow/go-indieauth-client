@@ -8,33 +8,7 @@
         <link href="css/styles.css" rel="stylesheet">
     </head>
     <body>
-        <header class="header">
-            <nav class="header__navigation">
-                <div class="brand">
-                    <div class="h-app">
-                        <img src="assets/logo.png" class="u-logo">
-                        <a href="/" class="u-url p-name">Indie Auth Playground</a>
-                    </div>
-                </div>
-
-
-                <div class="menu nav__body">
-                    <div class="nav__parent">
-                        <a class="nav__item" title="home" href="/">Home</a>
-                    </div>
-                    <div class="nav__parent">
-                        <a class="nav__item" title="Auth Endpoint" href="/auth">Auth Endpoint</a>
-                    </div>
-                    <div class="socials-nav__parent">
-                        <a href="https://github.com/aczietlow" rel="noopener me" target="_blank">Github</a>
-                        <a href="https://zietlow.io/" rel="noopener me" target="_blank">Website</a>
-                    </div>
-                </div>
-
-
-
-            </nav>
-        </header>
+        {{ template "header.html" }}
 
         <div class="content">
             <div class="auth-wrapper">

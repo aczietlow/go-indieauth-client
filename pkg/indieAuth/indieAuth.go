@@ -35,10 +35,11 @@ type Endpoint struct {
 }
 
 type Token struct {
-	AccessToken  string
-	Expires      int
-	RefreshToken string
-	Scope        []string
+	AuthorizationCode string
+	AccessToken       string
+	Expires           int
+	RefreshToken      string
+	Scope             []string
 }
 
 type TokenResponseParams struct {

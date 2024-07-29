@@ -10,7 +10,7 @@
     - [ ] If possible, keep echo server logic within the website implementation and the client implementation agnostic.
     - [x] Test with indieAuth.net
       - [x] Will need a valid URL for testing this. Localhost is denied by the spec and implementation 
-    - [ ] Refactor HTMX to make more sense 
+    - [x] Refactor HTMX to make more sense 
       - Won't be able to have a SPA. At least not right this minute.
 - [x] Complete the token exchange on redirect from the Auth Server
   - [x] Create state layer in memory
@@ -32,8 +32,9 @@
   - [ ] Actually output these client side
   - [ ] Find a way to show the client app verifying authorization code and validating identifier
   - [ ] Show the user the access token expiration date
-- [ ] Actually use the access token for "something"
-
+- [ ] Split the receiving of the authorization code and exchanging it for a token into multiple steps
+- [x] Actually use the access token for "something"
+- [x] Validate user access tokens via the indieAuth server
 
 Post MVP
 - [ ] Add support to indieAuthClient to look for auth metadata endpoint
