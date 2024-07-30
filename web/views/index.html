@@ -17,7 +17,7 @@
                         <h1>Log in with IndieAuth</h1>
                     </div>
                     <div class="login-form" id="login-form">
-                        {{ template "login-form" .Form }}
+                        {{ template "form" . }}
                     </div>
                     <div class="login-form__footer">
                         <span>Footer Notes</span>
@@ -28,9 +28,10 @@
                 </div>
             </div>
 
-            {{ template "url" .RedirectURL }}
+
             <hr />
-            <img src="assets/sequence-diagram.png" />
+            <h1>Uncomment Image</h1>
+<!--            <img src="assets/sequence-diagram.png" />-->
         </div>
         <script>
             document.addEventListener("DOMContentLoaded", (event) => {
@@ -46,6 +47,13 @@
 </html>
 {{ end }}
 
+{{ block "form" . }}
+    {{ template "login-form" .Form }}
+    {{ template "auth-form" .Form }}
+    {{ template "url" .RedirectURL }}
+
+{{ end}}
+
 {{ block "login-form" . }}
 <form hx-post="/auth" hx-swap="outerHTML">
     {{ if .Errors.url }}
@@ -57,28 +65,37 @@
     <input
             {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
             type="text" name="url" placeholder="domain.com">
-    <div class="login-form__input-label">
-        <label for="authorization_endpoint">Authorization Endpoint</label>
-    </div>
-    <input
-            {{ if .Values.authorization_endpoint }} value="{{.Values.authorization_endpoint}}" {{ end }}
-            type="text" name="authorization_endpoint" disabled>
-    <div class="login-form__input-label">
-        <label for="token_endpoint">Token Endpoint</label>
-    </div>
-    <input
-            {{ if .Values.token_endpoint }} value="{{.Values.token_endpoint}}" {{ end }}
-            type="text" name="token_endpoint" disabled>
     <div class="login-form__button">
         <button type="submit">Sign In</button>
     </div>
 </form>
 {{ end }}
 
+{{ block "auth-form" . }}
+<div class="auth-form" id="auth-form" hx-swap-oob="afterbefore">
+    <form>
+        <div class="login-form__input-label">
+            <label for="authorization_endpoint">Authorization Endpoint</label>
+        </div>
+        <input
+                {{ if .Values.authorization_endpoint }} value="{{.Values.authorization_endpoint}}" {{ end }}
+                type="text" name="authorization_endpoint" disabled>
+        <div class="login-form__input-label">
+            <label for="token_endpoint">Token Endpoint</label>
+        </div>
+        <input
+                {{ if .Values.token_endpoint }} value="{{.Values.token_endpoint}}" {{ end }}
+                type="text" name="token_endpoint" disabled>
+    </form>
+</div>
+{{ end }}
+
 {{ block "url" . }}
+<div class="redirect-url" id="redirect-url" hx-swap-oob="afterbefore">
     {{ if . }}
-        <a href="{{.}}">Auth Server Redirect URL</a>
+        <a href="{{.}}">Redirect to Auth Server</a>
     {{ end }}
+</div>
 {{ end }}
 
 {{ block "progress" . }}
