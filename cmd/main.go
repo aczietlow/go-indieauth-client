@@ -131,13 +131,14 @@ func main() {
 	e.POST("/auth", func(c echo.Context) error {
 		website := c.FormValue("url")
 		formData := newFormData()
-		formData.Values["url"] = website
+		form := "login-form"
 
+		formData.Values["url"] = website
 		indieAuthClientUser, err := newUser(website)
 
 		if err != nil {
 			formData.Errors["url"] = fmt.Sprintf("Error when trying to parse the url: %v", err)
-			return c.Render(422, "form", formData)
+			return c.Render(422, form, formData)
 		}
 		indieAuthClient := indieAuthClientUser.client
 
@@ -148,7 +149,8 @@ func main() {
 		formData.Values["authorization_endpoint"] = indieAuthClient.Endpoint.AuthURL
 		formData.Values["token_endpoint"] = indieAuthClient.Endpoint.TokenURL
 
-		c.Render(200, "login-form", formData)
+		c.Render(200, form, formData)
+		c.Render(200, "auth-form", formData)
 
 		data.Progress.Info += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)
 		data.Progress.Info += fmt.Sprintf("Info 2: Discover Auth Server Endpoints\n\tToken Endpoint:%v\n\tAuthorization Endpoint:%v\n", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
