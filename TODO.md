@@ -34,7 +34,7 @@
   - [ ] Show the user the access token expiration date
 - [ ] Split the receiving of the authorization code and exchanging it for a token into multiple steps
 - [x] Actually use the access token for "something"
-- [x] Validate user access tokens via the indieAuth server
+- [ ] Validate user access tokens via the indieAuth server
 
 Post MVP
 - [ ] Add support to indieAuthClient to look for auth metadata endpoint
