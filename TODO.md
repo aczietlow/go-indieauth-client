@@ -44,3 +44,5 @@ Post MVP
 - [ ] refactor indieAuth config file. Currently, am duplicating a thing
 - [ ] Grab a refresh Token
 - [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
+- [ ] Fix error handling on the form. Replace instances of `formData.Errors["url"]`
+- [ ] Create a wizard like form flow

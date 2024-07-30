@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/html/atom"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"strings"
@@ -279,7 +280,7 @@ func getTokenURLResponse(u string, params url.Values) (TokenResponseParams, erro
 	//debug(httputil.DumpRequestOut(req, true))
 	resp, err := (&http.Client{}).Do(req)
 
-	//debug(httputil.DumpResponse(resp, true))
+	debug(httputil.DumpResponse(resp, true))
 	if err != nil {
 		return TokenResponseParams{}, err
 	}
