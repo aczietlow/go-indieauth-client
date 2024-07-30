@@ -20,7 +20,7 @@
                         {{ template "form" . }}
                     </div>
                     <div class="login-form__footer">
-                        <span>Footer Notes</span>
+                        <span>Add Footer Notes here?</span>
                     </div>
                 </div>
                 <div class="login-info__container">
@@ -51,6 +51,8 @@
     {{ template "login-form" .Form }}
     {{ template "auth-form" .Form }}
     {{ template "url" .RedirectURL }}
+    {{ template "code-exchange-form" .Form }}
+    {{ template "refresh-form" .Form }}
 
 {{ end}}
 
@@ -64,7 +66,7 @@
     </div>
     <input
             {{ if .Values.url }} value="{{.Values.url}}" {{ end }}
-            type="text" name="url" placeholder="domain.com">
+            type="text" name="url" id="url" placeholder="domain.com">
     <div class="login-form__button">
         <button type="submit">Sign In</button>
     </div>
@@ -79,13 +81,92 @@
         </div>
         <input
                 {{ if .Values.authorization_endpoint }} value="{{.Values.authorization_endpoint}}" {{ end }}
-                type="text" name="authorization_endpoint" disabled>
+                type="text" name="authorization_endpoint" id="authorization_endpoint" disabled>
         <div class="login-form__input-label">
             <label for="token_endpoint">Token Endpoint</label>
         </div>
         <input
                 {{ if .Values.token_endpoint }} value="{{.Values.token_endpoint}}" {{ end }}
-                type="text" name="token_endpoint" disabled>
+                type="text" name="token_endpoint" id="token_endpoint" disabled>
+    </form>
+</div>
+{{ end }}
+
+{{ block "code-exchange-form" . }}
+<div id="code-exchange-form" class="code-exchange-form" hx-swap-oob="true">
+    <form hx-post="/token-exchange" hx-swap="outerHTML">
+        {{ if .Errors.url }}
+        <div style="color:red"> {{ .Errors.url }} </div>
+        {{ end }}
+
+
+        <div class="login-form__input-label">
+            <label for="code">Authorization Code</label>
+        </div>
+        <input
+                {{ if .Values.code }} value="{{.Values.code}}" {{ end }}
+                type="text" name="code" id="code">
+
+        <div class="login-form__input-label">
+            <label for="state">State</label>
+        </div>
+        <input
+                {{ if .Values.state }} value="{{.Values.state}}" {{ end }}
+                type="text" name="state" id="state">
+
+        <div class="login-form__input-label">
+            <label for="me">ME</label>
+        </div>
+        <input
+                {{ if .Values.me }} value="{{.Values.me}}" {{ end }}
+                type="text" name="me" id="me">
+
+        <div class="login-form__input-label">
+            <label for="iss">Issuer</label>
+        </div>
+        <input
+                {{ if .Values.iss }} value="{{.Values.iss}}" {{ end }}
+                type="text" name="iss" id="iss" disabled>
+
+        <div class="login-form__button">
+            <button type="submit">Exchange for Token</button>
+        </div>
+    </form>
+</div>
+{{ end }}
+
+{{ block "refresh-form" . }}
+<div id="refresh-form" class="refresh-exchange-form" hx-swap-oob="true">
+    <form hx-post="/refresh" hx-swap="outerHTML">
+        {{ if .Errors.url }}
+        <div style="color:red"> {{ .Errors.url }} </div>
+        {{ end }}
+
+
+        <div class="login-form__input-label">
+            <label for="token">Access Token</label>
+        </div>
+        <input
+                {{ if .Values.token }} value="{{.Values.token}}" {{ end }}
+                type="text" name="token" id="token">
+
+        <div class="login-form__input-label">
+            <label for="refresh">Refresh Token</label>
+        </div>
+        <input
+                {{ if .Values.refresh }} value="{{.Values.refresh}}" {{ end }}
+                type="text" name="refresh" id="refresh">
+
+        <div class="login-form__input-label">
+            <label for="expires">Expires In</label>
+        </div>
+        <input
+                {{ if .Values.expires_in }} value="{{.Values.expires_in}}" {{ end }}
+                type="text" name="expires" id="expires" disabled>
+
+        <div class="login-form__button">
+            <button type="submit">Refresh Access Token</button>
+        </div>
     </form>
 </div>
 {{ end }}
@@ -99,7 +180,6 @@
 {{ end }}
 
 {{ block "progress" . }}
-
 <div id="progress" hx-swap-oob="afterbefore" >
     {{ if eq .Step "discovery" }}
         {{ template "discovery.html" . }}
@@ -107,6 +187,8 @@
         {{ template "authorization-request.html" . }}
     {{ else if eq  .Step "redeeming-authorization-code" }}
         {{ template "redeeming-authorization-code.html" . }}
+    {{ else if eq  .Step "refresh" }}
+        {{ template "refresh.html" . }}
     {{ end }}
 
     <pre>

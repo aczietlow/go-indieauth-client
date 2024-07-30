@@ -170,17 +170,23 @@ func main() {
 	e.GET("/redirect", func(c echo.Context) error {
 		// @TODO should the website client be the one to pick these out and pass them? or should it just send all Params back as url.Value `c.QueryParams()`
 		code := c.QueryParam("code")
+		log.Printf("\n\n\n----Code received from server: %v----\n\n", code)
+
 		state := c.QueryParam("state")
+		log.Printf("\n\n\n----State received from server: %v----\n\n", state)
+
 		me := c.QueryParam("me")
 		// Apparently this is optional, or indieauth.com doesn't implement it.
 		issuer := c.QueryParam("iss")
+		form := "code-exchange-form"
+		pageStateData := data
 
 		formData := newFormData()
 		id, err := url.QueryUnescape(me)
 		if err != nil {
 			// @TODO this for sure isn't the correct venue for this.
 			formData.Errors["url"] = fmt.Sprintf("Error when unescaping the me value received: %v", err)
-			return c.Render(422, "form", formData)
+			return c.Render(422, form, formData)
 		}
 
 		formData.Values["url"] = id
@@ -188,21 +194,59 @@ func main() {
 
 		if !ok {
 			formData.Errors["url"] = fmt.Sprintf("No user for id: %v was found registered", id)
-			return c.Render(422, "form", formData)
-		}
-
-		token, err := u.client.TokenExchange(state, code, issuer)
-		if err != nil {
-			formData.Errors["url"] = fmt.Sprintf("Error when attempting to exchange the token: %v", err.Error())
-			return c.Render(422, "form", formData)
+			return c.Render(422, form, formData)
 		}
 
 		formData.Values["authorization_endpoint"] = u.client.Endpoint.AuthURL
 		formData.Values["token_endpoint"] = u.client.Endpoint.TokenURL
+		formData.Values["code"] = code
+		formData.Values["state"] = state
+		formData.Values["me"] = me
+		formData.Values["iss"] = issuer
+
+		pageStateData.Form = formData
+
+		return c.Render(200, "index", pageStateData)
+	})
+
+	e.POST("/token-exchange", func(c echo.Context) error {
+		code := c.FormValue("code")
+		state := c.FormValue("state")
+		me := c.FormValue("me")
+		issuer := c.FormValue("iss")
+
+		formData := newFormData()
+		formData.Values["code"] = code
+		formData.Values["state"] = state
+		formData.Values["me"] = me
+		formData.Values["iss"] = issuer
+
+		id, err := url.QueryUnescape(me)
+		if err != nil {
+			// @TODO this for sure isn't the correct venue for this.
+			formData.Errors["url"] = fmt.Sprintf("Error when unescaping the me value received: %v", err)
+			return c.Render(422, "code-exchange-form", formData)
+		}
+
+		formData.Values["url"] = id
+		u, ok := clientUsers[id]
+
+		if !ok {
+			log.Printf("No user for id: %v was found registered", id)
+			formData.Errors["url"] = fmt.Sprintf("No user for id: %v was found registered", id)
+			return c.Render(422, "code-exchange-form", formData)
+		}
+
+		token, err := u.client.TokenExchange(state, code, issuer)
+		if err != nil {
+			log.Printf("\n\n\n----Client %v", u.client.Identifier)
+			log.Printf("\n\n\n----Code sent: %v, Code compared against: %v----\n\n", state, u.client.State)
+			formData.Errors["url"] = fmt.Sprintf("Error when attempting to exchange the token: %v", err.Error())
+			return c.Render(422, "code-exchange-form", formData)
+		}
 
 		data.Progress.Info += fmt.Sprintf("Info 4: Exchanged Auth code for Bearer Token\n\tToken:%v\n", token)
-		data.Form = formData
-		data.Progress.Step = "redeeming-authorization-code"
+		data.Progress.Step = "refresh"
 
 		// Write a cookie
 		cookie := new(http.Cookie)
@@ -211,7 +255,20 @@ func main() {
 		//cookie.HttpOnly = true
 		//cookie.Expires = time.Now().Add(24 * time.Hour)
 		c.SetCookie(cookie)
-		return c.Render(200, "index", data)
+
+		formData.Values["token"] = token
+		formData.Values["refresh"] = u.client.Token.RefreshToken
+		formData.Values["expires_in"] = "1"
+		//formData.Values["expires_in"] = string(u.client.Token.Expires)
+
+		c.Render(200, "progress", data.Progress)
+		c.Render(200, "refresh-form", formData)
+		return c.Render(200, "code-exchange-form", formData)
+	})
+
+	e.POST("/refresh", func(c echo.Context) error {
+
+		return c.Render(200, "refresh-form", data)
 	})
 
 	e.GET("/secrets", func(c echo.Context) error {
