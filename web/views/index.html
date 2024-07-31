@@ -105,21 +105,21 @@
         </div>
         <input
                 {{ if .Values.code }} value="{{.Values.code}}" {{ end }}
-                type="text" name="code" id="code">
+                type="text" name="code" id="code" disabled>
 
         <div class="login-form__input-label">
             <label for="state">State</label>
         </div>
         <input
                 {{ if .Values.state }} value="{{.Values.state}}" {{ end }}
-                type="text" name="state" id="state">
+                type="text" name="state" id="state" disabled>
 
         <div class="login-form__input-label">
-            <label for="me">ME</label>
+            <label for="me">Me (Id)</label>
         </div>
         <input
                 {{ if .Values.me }} value="{{.Values.me}}" {{ end }}
-                type="text" name="me" id="me">
+                type="text" name="me" id="me" disabled>
 
         <div class="login-form__input-label">
             <label for="iss">Issuer</label>

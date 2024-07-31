@@ -28,3 +28,7 @@ The IndieAuth Server needs to be able to reach both the redirect_uri and client_
 `ngrok http http://localhost:9002`
 
 Then add the ngrok URL to the config.yaml file.
+
+## What this is NOT
+
+HTMX, Echo, and Air were all new to me during this project. While I went as far as reading the docs, there were a means to an end. All I wanted was a working implementation of the indieAuth client on via a web login form.
