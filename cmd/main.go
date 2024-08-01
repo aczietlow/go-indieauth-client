@@ -144,7 +144,6 @@ func main() {
 
 		// Just save everything in memory.
 		clientUsers[indieAuthClient.Identifier.ProfileURL] = indieAuthClientUser
-		log.Printf("\n\n%v\n\n", indieAuthClient.Identifier.ProfileURL)
 
 		formData.Values["authorization_endpoint"] = indieAuthClient.Endpoint.AuthURL
 		formData.Values["token_endpoint"] = indieAuthClient.Endpoint.TokenURL
@@ -156,7 +155,6 @@ func main() {
 		data.Progress.Info += fmt.Sprintf("Info 2: Discover Auth Server Endpoints\n\tToken Endpoint:%v\n\tAuthorization Endpoint:%v\n", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
 
 		redirectURL := indieAuthClient.GetAuthorizationRequestURL()
-		log.Println(redirectURL)
 		data.RedirectURL = redirectURL
 
 		data.Progress.Info += fmt.Sprintf("Info 3: Build Authorization Request\n\tRequest URL - %v\n", redirectURL)
@@ -170,10 +168,7 @@ func main() {
 	e.GET("/redirect", func(c echo.Context) error {
 		// @TODO should the website client be the one to pick these out and pass them? or should it just send all Params back as url.Value `c.QueryParams()`
 		code := c.QueryParam("code")
-		log.Printf("\n\n\n----Code received from server: %v----\n\n", code)
-
 		state := c.QueryParam("state")
-		log.Printf("\n\n\n----State received from server: %v----\n\n", state)
 
 		me := c.QueryParam("me")
 		// Apparently this is optional, or indieauth.com doesn't implement it.
