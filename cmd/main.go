@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"time"
 )
 
 type Templates struct {
@@ -131,77 +132,70 @@ func main() {
 	e.POST("/auth", func(c echo.Context) error {
 		website := c.FormValue("url")
 		formData := newFormData()
-		form := "login-form"
+		data = newData()
+		data.Progress.Step = "authorization-request"
 
-		formData.Values["url"] = website
 		indieAuthClientUser, err := newUser(website)
-
 		if err != nil {
 			formData.Errors["url"] = fmt.Sprintf("Error when trying to parse the url: %v", err)
-			return c.Render(422, form, formData)
+			return c.Render(http.StatusUnprocessableEntity, "login-form", formData)
 		}
 		indieAuthClient := indieAuthClientUser.client
 
 		// Just save everything in memory.
+		log.Printf("\n\n---Saving client id %v", indieAuthClient.Identifier.ProfileURL)
 		clientUsers[indieAuthClient.Identifier.ProfileURL] = indieAuthClientUser
 
+		formData.Values["url"] = website
 		formData.Values["authorization_endpoint"] = indieAuthClient.Endpoint.AuthURL
 		formData.Values["token_endpoint"] = indieAuthClient.Endpoint.TokenURL
 
-		c.Render(200, form, formData)
-		c.Render(200, "auth-form", formData)
+		c.Render(http.StatusOK, "login-form", formData)
+		c.Render(http.StatusOK, "auth-form", formData)
+		c.Render(http.StatusOK, "url", indieAuthClient.GetAuthorizationRequestURL())
 
-		data.Progress.Info += fmt.Sprintf("\tUser ID (Canonicalized): %v\n", indieAuthClient.Identifier.ProfileURL)
-		data.Progress.Info += fmt.Sprintf("Info 2: Discover Auth Server Endpoints\n\tToken Endpoint:%v\n\tAuthorization Endpoint:%v\n", indieAuthClient.Endpoint.TokenURL, indieAuthClient.Endpoint.AuthURL)
-
-		redirectURL := indieAuthClient.GetAuthorizationRequestURL()
-		data.RedirectURL = redirectURL
-
-		data.Progress.Info += fmt.Sprintf("Info 3: Build Authorization Request\n\tRequest URL - %v\n", redirectURL)
-		data.Progress.Step = "authorization-request"
-
-		c.Render(200, "url", data.RedirectURL)
-
-		return c.Render(200, "progress", data.Progress)
+		return c.Render(http.StatusOK, "progress", data.Progress)
 	})
 
 	e.GET("/redirect", func(c echo.Context) error {
 		// @TODO should the website client be the one to pick these out and pass them? or should it just send all Params back as url.Value `c.QueryParams()`
 		code := c.QueryParam("code")
 		state := c.QueryParam("state")
-
 		me := c.QueryParam("me")
 		// Apparently this is optional, or indieauth.com doesn't implement it.
 		issuer := c.QueryParam("iss")
-		form := "code-exchange-form"
-		pageStateData := data
-
+		data = newData()
+		data.Progress.Step = "redeeming-authorization-code"
 		formData := newFormData()
 		id, err := url.QueryUnescape(me)
-		if err != nil {
-			// @TODO this for sure isn't the correct venue for this.
-			formData.Errors["url"] = fmt.Sprintf("Error when unescaping the me value received: %v", err)
-			return c.Render(422, form, formData)
-		}
 
-		formData.Values["url"] = id
-		u, ok := clientUsers[id]
-
-		if !ok {
-			formData.Errors["url"] = fmt.Sprintf("No user for id: %v was found registered", id)
-			return c.Render(422, form, formData)
-		}
-
-		formData.Values["authorization_endpoint"] = u.client.Endpoint.AuthURL
-		formData.Values["token_endpoint"] = u.client.Endpoint.TokenURL
 		formData.Values["code"] = code
 		formData.Values["state"] = state
 		formData.Values["me"] = me
 		formData.Values["iss"] = issuer
+		formData.Values["url"] = id
 
-		pageStateData.Form = formData
+		if err != nil {
+			// @TODO this for sure isn't the correct venue for this.
+			formData.Errors["url"] = fmt.Sprintf("Error when unescaping the me value received: %v", err)
+			return c.Render(http.StatusUnprocessableEntity, "code-exchange-form", formData)
+		}
 
-		return c.Render(200, "index", pageStateData)
+		u, ok := clientUsers[id]
+
+		if !ok {
+			log.Printf("\n\n---Checking for user |%v|", id)
+			formData.Errors["url"] = fmt.Sprintf("No user for id: %v was found registered", id)
+			return c.Render(http.StatusUnprocessableEntity, "code-exchange-form", formData)
+		}
+
+		data.RedirectURL = u.client.RedirectURL
+		formData.Values["authorization_endpoint"] = u.client.Endpoint.AuthURL
+		formData.Values["token_endpoint"] = u.client.Endpoint.TokenURL
+
+		data.Form = formData
+
+		return c.Render(200, "index", data)
 	})
 
 	e.POST("/token-exchange", func(c echo.Context) error {
@@ -209,7 +203,7 @@ func main() {
 		state := c.FormValue("state")
 		me := c.FormValue("me")
 		issuer := c.FormValue("iss")
-
+		data = newData()
 		formData := newFormData()
 		formData.Values["code"] = code
 		formData.Values["state"] = state
@@ -227,7 +221,6 @@ func main() {
 		u, ok := clientUsers[id]
 
 		if !ok {
-			log.Printf("No user for id: %v was found registered", id)
 			formData.Errors["url"] = fmt.Sprintf("No user for id: %v was found registered", id)
 			return c.Render(422, "code-exchange-form", formData)
 		}
@@ -240,15 +233,14 @@ func main() {
 			return c.Render(422, "code-exchange-form", formData)
 		}
 
-		data.Progress.Info += fmt.Sprintf("Info 4: Exchanged Auth code for Bearer Token\n\tToken:%v\n", token)
 		data.Progress.Step = "refresh"
 
 		// Write a cookie
 		cookie := new(http.Cookie)
 		cookie.Name = "indieAuthClient"
 		cookie.Value = token
-		//cookie.HttpOnly = true
-		//cookie.Expires = time.Now().Add(24 * time.Hour)
+		cookie.HttpOnly = true
+		cookie.Expires = time.Now().Add(24 * time.Hour)
 		c.SetCookie(cookie)
 
 		formData.Values["token"] = token
@@ -267,13 +259,12 @@ func main() {
 	})
 
 	e.GET("/secrets", func(c echo.Context) error {
+		data = newData()
 		// @TODO pull the access token from a cookie in the user browser instead of from an in memory object.
 		cookie, err := c.Cookie("indieAuthClient")
-
 		if err != nil {
-			// @TODO 200's are NOT how access denied is handled..... Drupal
 			log.Printf("Encountered an error %v", err.Error())
-			return c.Render(200, "secrets", data)
+			return c.Render(http.StatusForbidden, "secrets", data)
 		}
 		token := cookie.Value
 		log.Printf("User token is %v", token)
@@ -281,15 +272,21 @@ func main() {
 		data.Authenticated = true
 
 		// @TODO Clean the "data" structure up to be more sane
-		return c.Render(200, "secrets", data)
+		return c.Render(http.StatusOK, "secrets", data)
 	})
 
 	// @TODO Remove poor mans data wipe.
 	e.GET("/reset", func(c echo.Context) error {
 		clientUsers = make(Users)
-		data = newData()
+		c.SetCookie(&http.Cookie{
+			Name:     "indieAuthClient",
+			Value:    "",
+			Expires:  time.Unix(0, 0),
+			MaxAge:   -1,
+			HttpOnly: true,
+		})
 
-		return c.Render(200, "index", data)
+		return c.Render(http.StatusOK, "index", data)
 	})
 
 	e.Logger.Fatal(e.Start(":9002"))

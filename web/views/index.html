@@ -95,27 +95,25 @@
         <div style="color:red"> {{ .Errors.url }} </div>
         {{ end }}
 
-
         <div class="login-form__input-label">
             <label for="code">Authorization Code</label>
         </div>
         <input
                 {{ if .Values.code }} value="{{.Values.code}}" {{ end }}
-                type="text" name="code" id="code" disabled>
-
+                type="text" name="code" id="code">
         <div class="login-form__input-label">
             <label for="state">State</label>
         </div>
         <input
                 {{ if .Values.state }} value="{{.Values.state}}" {{ end }}
-                type="text" name="state" id="state" disabled>
+                type="text" name="state" id="state">
 
         <div class="login-form__input-label">
             <label for="me">Me (Id)</label>
         </div>
         <input
                 {{ if .Values.me }} value="{{.Values.me}}" {{ end }}
-                type="text" name="me" id="me" disabled>
+                type="text" name="me" id="me">
 
         <div class="login-form__input-label">
             <label for="iss">Issuer</label>
