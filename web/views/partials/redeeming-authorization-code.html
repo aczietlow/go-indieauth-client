@@ -2,6 +2,23 @@
 
 <h2>Redeeming Authorization Code</h2>
 
-<p>Users are identified by a URL.</p>
+<p>During this step the client will first verify the state parameter returned from the server, at which point it can successfully use the authorization code to request an access token.</p>
+
+<dl>
+    <dt>grant_type=authorization_code</dt>
+    <dd>Indicates to the server that an access token should be returned</dd>
+
+    <dt>code</dt>
+    <dd>The authorization code received from the authorization endpoint when being redirected back to the client</dd>
+
+    <dt>client_id</dt>
+    <dd>(Remember clients are identified by URLs). THe Client's URL, which MUST match the client_id used in the authentication request</dd>
+
+    <dt>redirect_uri</dt>
+    <dd>The client's redirect URL, which MUST match the value passed in the earlier authentication request</dd>
+
+    <dt>code_verifier</dt>
+    <dd>The original plaintext random string generated before starting the authorization request</dd>
+</dl>
 
 {{ end }}
