@@ -44,12 +44,33 @@
 {{ end }}
 
 {{ block "form" . }}
-    {{ template "login-form" .Form }}
-    {{ template "auth-form" .Form }}
-    {{ template "url" .RedirectURL }}
-    {{ template "code-exchange-form" .Form }}
-    {{ template "refresh-form" .Form }}
-
+<div class="accordion">
+    <div class="accordion-item">
+        <button class="accordion-header">Discovery</button>
+        <div class="accordion-content expanded">
+            {{ template "login-form" .Form }}
+        </div>
+    </div>
+    <div class="accordion-item">
+        <button class="accordion-header">Authorization Request</button>
+        <div class="accordion-content">
+            {{ template "auth-form" .Form }}
+            {{ template "url" .RedirectURL }}
+        </div>
+    </div>
+    <div class="accordion-item">
+        <button class="accordion-header">Redeem Authorization Code</button>
+        <div class="accordion-content">
+            {{ template "code-exchange-form" .Form }}
+        </div>
+    </div>
+    <div class="accordion-item">
+        <button class="accordion-header">Refresh Authorization Code</button>
+        <div class="accordion-content">
+            {{ template "refresh-form" .Form }}
+        </div>
+    </div>
+</div>
 {{ end}}
 
 {{ block "login-form" . }}

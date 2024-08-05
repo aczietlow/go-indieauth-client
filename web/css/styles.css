@@ -174,3 +174,42 @@ body {
         box-sizing: border-box;
     }
 }
+
+.accordion {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-block-end: 1em;
+}
+
+.accordion-item {
+    border-top: 1px solid #ccc;
+    & .expanded {
+        display: block;
+    }
+}
+
+.accordion-header {
+    width: 100%;
+    padding: 15px;
+    text-align: left;
+    background-color: #f1f1f1;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.accordion-header:hover {
+    background-color: #ddd;
+}
+
+.accordion-content {
+    display: none;
+    padding: 15px;
+    background-color: #fff;
+}
+
+.accordion-content p {
+    margin: 0;
+}

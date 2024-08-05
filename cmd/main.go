@@ -115,6 +115,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Static("/css", "web/css")
+	e.Static("/js", "web/js")
 	e.Static("/assets", "web/assets")
 
 	// Inline debugging.
