@@ -25,16 +25,15 @@
   - [x] Hold on to access token
   - [x] display in browser
 - [ ] Read Oauth [spec](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1) for indicating errors, and make a pass at cleaning up code base.
-- [ ] Make scopes selectable in the form
-- [ ] Break flow of redirects
-  - [ ] Discovery request should display to the user to show values returned; Show authorization request URL to the user
+- [x] Break flow of redirects
+  - [x] Discovery request should display to the user to show values returned; Show authorization request URL to the user
   - [ ] Using middleware, capture the actual http requests and response for output client side
   - [ ] Actually output these client side
-  - [ ] Find a way to show the client app verifying authorization code and validating identifier
-  - [ ] Show the user the access token expiration date
-- [ ] Split the receiving of the authorization code and exchanging it for a token into multiple steps
+  - [x] Find a way to show the client app verifying authorization code and validating identifier
+  - [x] Show the user the access token expiration date
+- [x] Split the receiving of the authorization code and exchanging it for a token into multiple steps
 - [x] Actually use the access token for "something"
-- [ ] Validate user access tokens via the indieAuth server
+- [x] Validate user access tokens via the indieAuth server
 
 Post MVP
 - [ ] Add support to indieAuthClient to look for auth metadata endpoint
@@ -46,3 +45,5 @@ Post MVP
 - [ ] Build indieAuth Server Authorization Endpoint to respond to authorization requests
 - [ ] Fix error handling on the form. Replace instances of `formData.Errors["url"]`
 - [ ] Create a wizard like form flow
+- [ ] Make scopes selectable in the form
+
