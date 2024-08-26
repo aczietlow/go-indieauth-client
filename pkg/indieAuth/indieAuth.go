@@ -18,15 +18,13 @@ import (
 )
 
 type Config struct {
-	ClientID string
-	// @TODO What is the client secret again?
-	ClientSecret string
-	Endpoint     Endpoint
-	Identifier   Identifier
-	RedirectURL  string
-	State        string
-	Verifier     string
-	Token        Token
+	ClientID    string
+	Endpoint    Endpoint
+	Identifier  Identifier
+	RedirectURL string
+	State       string
+	Verifier    string
+	Token       Token
 }
 
 type Endpoint struct {
@@ -73,19 +71,17 @@ func New(ProfileURL string) (Config, error) {
 
 	state, err := generateState(10)
 	if err != nil {
-		// @TODO do something
-		fmt.Println(err.Error())
+		return Config{}, err
 	}
 
 	return Config{
-		ClientID:     runTimeConf.URL,
-		ClientSecret: "",
-		Endpoint:     endpoint,
-		Identifier:   id,
-		RedirectURL:  runTimeConf.RedirectURL,
-		State:        state,
-		Verifier:     "",
-		Token:        Token{},
+		ClientID:    runTimeConf.URL,
+		Endpoint:    endpoint,
+		Identifier:  id,
+		RedirectURL: runTimeConf.RedirectURL,
+		State:       state,
+		Verifier:    "",
+		Token:       Token{},
 	}, nil
 }
 
@@ -175,12 +171,9 @@ func (c *Config) GetAuthorizationRequestURL() string {
 }
 
 func getHandshakeParams(c Config) url.Values {
-	// code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
-
-	// @TODO Add support for additional code challenge methods in the future.
+	// BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
 	codeChallenge := s256CodeChallenge(c.Verifier)
 
-	//request := map[string][]string{
 	request := url.Values{
 		"response_type":         []string{"code"},
 		"client_id":             []string{c.ClientID},

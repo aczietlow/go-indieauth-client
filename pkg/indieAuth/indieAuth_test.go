@@ -75,8 +75,7 @@ func TestNew(t *testing.T) {
 			profileURL: "https://zietlow.io",
 			wantErr:    false,
 			wantConfig: Config{
-				ClientID:     "http://localhost:9002/",
-				ClientSecret: "",
+				ClientID: "http://localhost:9002/",
 				Endpoint: Endpoint{
 					AuthURL:  "https://indieauth.com/auth",
 					TokenURL: "https://tokens.indieauth.com/token",

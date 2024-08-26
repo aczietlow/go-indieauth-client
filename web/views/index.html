@@ -29,12 +29,29 @@
             <h1>Uncomment Image</h1>
 <!--            <img src="assets/sequence-diagram.png" />-->
         </div>
+
         <script>
             document.addEventListener("DOMContentLoaded", (event) => {
+                const inputField = document.getElementById("code");
+                if (inputField.value) {
+                    inputField.closest('.accordion-content').classList.add('expanded')
+                }
+
                 document.body.addEventListener('htmx:beforeSwap', function(event) {
                     if (event.detail.xhr.status === 422) {
                         event.detail.shouldSwap = true;
                         event.detail.isError = false;
+                    }
+                });
+
+                document.body.addEventListener('htmx:afterSwap', function(event) {
+                    const inputFields = ["authorization_endpoint", "code", "token"]
+
+                    for (let i = 0; i < inputFields.length; i++) {
+                        const inputField = document.getElementById(inputFields[i]);
+                        if (inputField.value) {
+                            inputField.closest('.accordion-content').classList.add('expanded')
+                        }
                     }
                 });
             })
@@ -212,9 +229,6 @@
 HTTP/2.0 200 OK
 Connection: close
 Content-Type: application/json
-Date: Fri, 02 Aug 2024 00:48:51 GMT
-Server: nginx/1.14.0
-X-Powered-By: PHP/7.2.7-1+ubuntu16.04.1+deb.sury.org+1
 
 {
   "me": "https:\/\/zietlow.io\/",
