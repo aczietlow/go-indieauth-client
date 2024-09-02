@@ -65,7 +65,6 @@ func newFormData() FormData {
 type Users = map[string]User
 
 type User struct {
-	// Should be a URL type?
 	id     string
 	client indieAuth.Config
 }
@@ -117,9 +116,6 @@ func main() {
 	e.Static("/css", "web/css")
 	e.Static("/js", "web/js")
 	e.Static("/assets", "web/assets")
-
-	// Inline debugging.
-	//log.Println()
 
 	e.Renderer = newTemplate()
 
