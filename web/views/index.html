@@ -16,7 +16,7 @@
                         {{ template "form" . }}
                     </div>
                     <div class="login-form__footer">
-                        <span>Add Footer Notes here?</span>
+<!--                        <span>Add Footer Notes here?</span>-->
                     </div>
                 </div>
                 <div class="login-info__container">
@@ -25,7 +25,6 @@
             </div>
 
             <hr />
-            <h1>Uncomment Image</h1>
             <img src="assets/sequence-diagram.png" />
         </div>
 
@@ -221,24 +220,23 @@
     {{ else if eq  .Step "refresh" }}
         {{ template "refresh.html" . }}
     {{ end }}
+<!--    <pre>-->
+<!--        <div>-->
+<!--            <code>-->
+<!--HTTP/2.0 200 OK-->
+<!--Connection: close-->
+<!--Content-Type: application/json-->
 
-    <pre>
-        <div>
-            <code>
-HTTP/2.0 200 OK
-Connection: close
-Content-Type: application/json
+<!--{-->
+<!--  "me": "https:\/\/zietlow.io\/",-->
+<!--  "scope": "profile email",-->
+<!--  "access_token": "123456",-->
+<!--  "token_type": "Bearer"-->
+<!--}-->
 
-{
-  "me": "https:\/\/zietlow.io\/",
-  "scope": "profile email",
-  "access_token": "123456",
-  "token_type": "Bearer"
-}
-
-            </code>
-        </div>
-    </pre>
+<!--            </code>-->
+<!--        </div>-->
+<!--    </pre>-->
 </div>
 
 {{ end }}
