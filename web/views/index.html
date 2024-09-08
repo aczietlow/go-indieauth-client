@@ -15,9 +15,9 @@
                     <div class="login-form" id="login-form">
                         {{ template "form" . }}
                     </div>
-                    <div class="login-form__footer">
+<!--                    <div class="login-form__footer">-->
 <!--                        <span>Add Footer Notes here?</span>-->
-                    </div>
+<!--                    </div>-->
                 </div>
                 <div class="login-info__container">
                     {{ template "progress" .Progress }}
@@ -25,7 +25,7 @@
             </div>
 
             <hr />
-            <img src="assets/sequence-diagram.png" />
+<!--            <img src="assets/sequence-diagram.png" />-->
         </div>
 
         <script>
@@ -220,6 +220,8 @@
     {{ else if eq  .Step "refresh" }}
         {{ template "refresh.html" . }}
     {{ end }}
+
+
 <!--    <pre>-->
 <!--        <div>-->
 <!--            <code>-->

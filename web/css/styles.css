@@ -3,6 +3,10 @@
     --primary-cta-color-highlighted: #9e0018;
     --secondary-color: #151515;
     --background-color: #f5f5f5;
+    --sm-breakpoint: 480px;
+    --md-breakpoint: 768px;
+    --lg-breakpoint: 1024px;
+    --xl-breakpoint: 1280px;
 }
 
 body {
@@ -14,6 +18,7 @@ body {
     padding: 0;
     min-height: 100vh;
     font-kerning: normal;
+    font-family: 'Red Hat Text', sans-serif;
     box-sizing: border-box;
 }
 
@@ -96,7 +101,11 @@ body {
     background-color: var(--background-color);
     border: 1px solid #e3e3e3;
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
+    @media screen and (max-width: 1024px) {
+        flex-direction: column;
+    }
 }
 
 .auth-wrapper > div {
@@ -114,8 +123,14 @@ body {
     }
 }
 
-.login-form__container > div {
-    padding: 48px;
+.login-form__container {
+    & > div {
+        padding: 0 3rem 2rem;
+    }
+}
+
+.login-form__header {
+    padding-top: 3rem;
 }
 
 .login-form {
@@ -156,7 +171,9 @@ body {
 
 .redirect-url {
     display: inline-block;
+    width: 100%;
     & a {
+        font-size: 1.1rem;
         display: inline-block;
         text-decoration: none;
         text-align: center;
