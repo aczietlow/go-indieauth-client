@@ -8,3 +8,6 @@
 /http
 
 config.yaml
+data.txt
+server
+pkg/indieAuth/tmp
