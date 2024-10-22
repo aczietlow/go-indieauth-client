@@ -1,4 +1,4 @@
-- [x] complete url canonicalization
+ [x] complete url canonicalization
 - [x] Move on to creating the client authorization request
   - The client builds the authorization request including its 
     - [x] client identifier, 
